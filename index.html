@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>天地润禾设计 | 2024 品牌视觉报告</title>
+    <!-- 引入 Tailwind 和 GSAP -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&family=Noto+Serif+SC:wght@200;400;700;900&display=swap');
+
+        :root {
+            --brand-red: #A91B0D;    
+            --bg-paper: #F7F7F2;     
+            --text-main: #1A1A1A;    
+            --border-color: #E2E2D8;
+        }
+
+        body {
+            font-family: 'Inter', 'Noto Sans SC', sans-serif;
+            background-color: var(--bg-paper);
+            color: var(--text-main);
+            overflow: hidden;
+            margin: 0; padding: 0;
+            display: flex; flex-direction: column; 
+            height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            overscroll-behavior-y: none;
+        }
+
+        /* --- 初始开屏页面样式 --- */
+        #splash-screen {
+            position: fixed; inset: 0; background-color: #000000; z-index: 10000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            cursor: pointer; overflow: hidden;
+            will-change: opacity;
+        }
+        
+        #splash-bg-container {
+            position: absolute;
+            width: 300vmax; height: 300vmax; 
+            left: 50%; top: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            opacity: 0.10; 
+            pointer-events: none;
+            /* 亮度提升为 1.2，在幽暗中凸显细节 */
+            filter: grayscale(100%) brightness(1.2); 
+            z-index: 1;
+            will-change: transform, opacity;
+        }
+
+        .splash-text {
+            color: #FFFFFF; font-size: clamp(2rem, 6vw, 5.5rem); font-weight: 900; 
+            letter-spacing: 0.15em; font-family: 'Noto Sans SC', sans-serif;
+            position: relative; z-index: 10; text-align: center;
+            text-shadow: 0 0 40px rgba(0,0,0,0.8);
+            will-change: transform, opacity;
+        }
+        
+        .splash-hint {
+            position: absolute; bottom: 15%; left: 50%; transform: translateX(-50%);
+            color: rgba(255, 255, 255, 0.4); font-size: 11px; letter-spacing: 0.3em;
+            text-transform: uppercase; font-family: 'Inter', sans-serif;
+            animation: pulseHint 2s infinite ease-in-out; z-index: 10;
+        }
+        @keyframes pulseHint { 0%, 100% { opacity: 0.2; } 50% { opacity: 0.8; } }
+
+        /* 噪点背景 */
+        .noise-bg {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none; z-index: 8000; opacity: 0.035; transition: opacity 0.5s ease;
+            background: url('data:image/svg+xml;utf8,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)"/%3E%3C/svg%3E');
+        }
+
+        .font-serif { font-family: 'Noto Serif SC', serif; }
+
+        /* 定制滚动条 */
+        .custom-scrollbar::-webkit-scrollbar { width: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #D1D1C7; border-radius: 4px; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* --- 画廊动画 --- */
+        .gallery-wrapper { display: flex; width: 100%; height: 100%; }
+        .gallery-col { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+        .scroll-track { display: flex; flex-direction: column; width: 100%; animation: scrollUp linear infinite; will-change: transform; }
+        
+        .speed-v1 { animation-duration: 26s; } .speed-v2 { animation-duration: 27s; } 
+        .speed-v3 { animation-duration: 22s; } .speed-v4 { animation-duration: 23s; } 
+        .speed-v5 { animation-duration: 36s; } 
+
+        /* 极度缓慢的首屏瀑布流 */
+        .splash-speed-v1 { animation-duration: 350s; } .splash-speed-v2 { animation-duration: 380s; } 
+        .splash-speed-v3 { animation-duration: 280s; } .splash-speed-v4 { animation-duration: 320s; } 
+        .splash-speed-v5 { animation-duration: 450s; }
+
+        @keyframes scrollUp { 0% { transform: translateY(0); } 100% { transform: translateY(-50%); } }
+
+        /* --- Contact横向滚动动画 --- */
+        .scroll-track-x { display: flex; flex-direction: row; width: max-content; will-change: transform; }
+        .scroll-left { animation: scrollLeft linear infinite; }
+        .scroll-right { animation: scrollRight linear infinite; }
+        .speed-x-mid { animation-duration: 90s; } .speed-x-slow { animation-duration: 120s; }
+        @keyframes scrollLeft { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+        @keyframes scrollRight { 0% { transform: translateX(-50%); } 100% { transform: translateX(0); } }
+
+        /* --- Works基础样式 --- */
+        .masonry-item {
+            display: block; width: 100%; overflow: hidden; position: relative;
+            background-color: #050505; border-bottom: 1px solid #111;
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1); cursor: pointer;
+        }
+        .masonry-item img { 
+            width: 100%; height: auto; display: block; 
+            transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s ease; 
+        }
+        #view-works .masonry-item:hover { transform: translateY(-2px) scale(1.01); z-index: 10; border-color: transparent; }
+        #view-works .masonry-item:hover img { transform: scale(1.08); filter: brightness(1.1); }
+
+        .overlay {
+            position: absolute; inset: 0;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.2) 50%, transparent 100%);
+            opacity: 0; transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex; align-items: flex-end; padding: 2rem 1.5rem;
+        }
+        #view-works .masonry-item:hover .overlay { opacity: 1; }
+        .overlay-content { transform: translateY(20px); transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+        #view-works .masonry-item:hover .overlay-content { transform: translateY(0); }
+
+        .gs-init-hide { opacity: 0; }
+
+        /* 导航菜单互动样式 */
+        .nav-link-container { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; overflow: hidden; cursor: pointer; }
+        .nav-eng { display: block; color: #9CA3AF; transition: transform 0.45s cubic-bezier(0.19, 1, 0.22, 1), color 0.3s ease; }
+        .nav-zh { position: absolute; display: block; opacity: 0; transform: translateY(18px); transition: transform 0.45s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.3s ease; font-weight: 500; font-size: 10px; color: var(--text-main); white-space: nowrap; letter-spacing: 0.15em; }
+        .group:hover .nav-eng { transform: translateY(-8px); color: var(--text-main) !important; }
+        .group:hover .nav-zh { opacity: 1; transform: translateY(8px); }
+        
+        /* 导航高亮颜色效果：当前页英文和悬浮中文变红 */
+        .nav-active .nav-eng { color: var(--brand-red) !important; }
+        .nav-active .nav-zh { color: var(--brand-red) !important; }
+        .nav-active.group:hover .nav-eng { color: var(--brand-red) !important; }
+        .nav-active::after { content: ''; position: absolute; bottom: 0; left: 15%; width: 70%; height: 1.5px; background-color: var(--brand-red); transform-origin: center; }
+        
+        /* 性能优化 */
+        .perf-opt { content-visibility: auto; contain: paint; }
+
+        @media (max-width: 768px) {
+            #view-works .masonry-item { background-color: transparent; border-bottom: none; padding: 1.5rem 0.75rem; }
+            #view-works .gallery-col { border-right: none !important; }
+        }
+    </style>
+</head>
+<body class="no-scrollbar">
+
+    <!-- 1. 初始黑色开屏层 -->
+    <div id="splash-screen" onclick="enterSite()">
+        <div id="splash-bg-container">
+            <div id="splash-bg-gallery" class="w-full h-full"></div>
+        </div>
+        <div class="splash-text gs-splash-text">天地润禾 &nbsp; 成人之美</div>
+        <div class="splash-hint gs-splash-text">Click To Enter</div>
+    </div>
+
+    <!-- 移动端全屏菜单 -->
+    <div id="mobile-menu" class="fixed inset-0 bg-[#F7F7F2] z-[40] flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
+        <nav class="flex flex-col items-center gap-10">
+            <button id="mob-nav-company" onclick="switchMobileView('company')" class="text-3xl font-serif text-[#1A1A1A] tracking-widest uppercase hover:text-brand-red transition-colors">Company</button>
+            <button id="mob-nav-works" onclick="switchMobileView('works')" class="text-3xl font-serif text-[#1A1A1A] tracking-widest uppercase hover:text-brand-red transition-colors">Works</button>
+            <button id="mob-nav-people" onclick="switchMobileView('people')" class="text-3xl font-serif text-[#1A1A1A] tracking-widest uppercase hover:text-brand-red transition-colors">People</button>
+            <button id="mob-nav-contact" onclick="switchMobileView('contact')" class="text-3xl font-serif text-[#1A1A1A] tracking-widest uppercase hover:text-brand-red transition-colors">Contact</button>
+        </nav>
+    </div>
+
+    <div class="noise-bg" id="global-noise"></div>
+
+    <!-- 2. 全局顶部导航层 -->
+    <header class="w-full h-12 md:h-14 border-b relative z-50 shrink-0 gs-init-hide" style="border-color: var(--border-color); background-color: var(--bg-paper);">
+        <div class="w-full h-full flex items-center justify-between pl-4 pr-6 md:pl-6 lg:pl-8 lg:pr-16">
+            <div class="flex items-center gs-header relative z-50">
+                <button onclick="switchView('company')" class="group flex items-center justify-start transition-opacity duration-300 hover:opacity-70 focus:outline-none cursor-pointer">
+                    <img src="https://i.ibb.co/27SD6Ytc/image.png" alt="天地润禾设计 LOGO" class="h-5 md:h-6 w-auto object-contain" />
+                </button>
+            </div>
+
+            <nav class="hidden md:flex items-center justify-end gap-6 lg:gap-10 h-full gs-header">
+                <button id="nav-company" onclick="switchView('company')" class="group relative h-full px-1">
+                    <div class="nav-link-container"><span class="nav-eng text-[11px] font-medium tracking-[0.03em] uppercase">Company</span><span class="nav-zh">我们</span></div>
+                </button>
+                <button id="nav-works" onclick="switchView('works')" class="group relative h-full px-1">
+                    <div class="nav-link-container"><span class="nav-eng text-[11px] font-medium tracking-[0.03em] uppercase">Works</span><span class="nav-zh">作品</span></div>
+                </button>
+                <button id="nav-people" onclick="switchView('people')" class="group relative h-full px-1">
+                    <div class="nav-link-container"><span class="nav-eng text-[11px] font-medium tracking-[0.03em] uppercase">People</span><span class="nav-zh">团队</span></div>
+                </button>
+                <button id="nav-contact" onclick="switchView('contact')" class="group relative h-full px-1">
+                    <div class="nav-link-container"><span class="nav-eng text-[11px] font-medium tracking-[0.03em] uppercase">Contact</span><span class="nav-zh">联系</span></div>
+                </button>
+            </nav>
+
+            <div class="md:hidden flex items-center justify-end gs-header relative z-50">
+                <button onclick="toggleMobileMenu()" id="hamburger-btn" class="text-[#1A1A1A] focus:outline-none p-2 transition-colors duration-300">
+                    <svg class="w-6 h-6 transition-transform duration-300" id="hamburger-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path id="hamburger-icon" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="relative flex-grow w-full overflow-hidden">
+
+        <!-- ==================== 视图 1: 滚动画廊 (WORKS) ==================== -->
+        <section id="view-works" class="absolute inset-0 w-full h-full flex flex-col z-10 bg-black opacity-0 pointer-events-none">
+            <div class="w-full h-full relative overflow-hidden">
+                <div id="works-gallery-wrapper" class="w-full h-full"></div>
+            </div>
+        </section>
+
+        <!-- ==================== 视图 2: 公司简介 (COMPANY) ==================== -->
+        <section id="view-company" class="absolute inset-0 w-full h-full flex flex-col lg:flex-row z-[20] opacity-0 pointer-events-none bg-[var(--bg-paper)]">
+            <div class="w-full lg:w-1/2 h-full overflow-y-auto custom-scrollbar border-r relative" style="border-color: var(--border-color);">
+                <div class="relative z-10 w-full max-w-2xl mx-auto px-8 lg:px-16 pt-16 pb-24 lg:pt-24 min-h-full flex flex-col justify-start text-left">
+                    <div class="w-full max-w-[540px] mx-auto lg:mx-0">
+                        <div class="mb-10 gs-company-reveal gs-init-hide">
+                            <span class="block text-[10px] font-bold tracking-[0.1em] text-[#888888] uppercase mb-6 font-sans">About Us / 关于我们</span>
+                            <h1 class="text-5xl md:text-[4.5rem] lg:text-[5.5rem] font-black text-[#1A1A1A] tracking-tighter leading-none mb-10 font-sans">
+                                天地润，<br/>
+                                <span class="font-light italic text-[#333333] tracking-normal inline-block mt-2 md:mt-4">万物生</span>
+                            </h1>
+                            <p class="text-[14px] md:text-[15px] font-sans font-normal leading-[2.2] tracking-wider text-[#333333] text-justify">
+                                天地润禾设计，专注包装设计领域二十余年，是致力于酒类品牌塑造、白酒包装的专业设计机构。在 “用设计点亮酒的魅力，让品牌深入人心” 的公司理念驱动下，我们的设计屡获市场好评，多年来与茅台、五粮液、洋河等多个知名品牌建立了深厚的友谊，成为白酒包装设计领域中大家值得信赖的长期合作伙伴。
+                            </p>
+                        </div>
+                        <div class="space-y-6 text-[13px] md:text-[14px] font-sans font-normal leading-[2.4] text-[#4A4A4A] tracking-wide gs-company-reveal gs-init-hide text-justify">
+                            <p>成都天地润禾广告设计有限公司成立于 2010 年，总部位于四川成都高新区，由行业资深设计师任利波先生创立。</p>
+                            <p>公司创始人任利波先生，既是中国包装联合会设计委员会全国委员，也是深耕白酒设计领域的践行者。“二十年专注一事”，是对他与天地润禾最精准的概括。团队始终坚持设计拒绝浮华，以 “抢占市场制高点” 为核心使命，不盲目追求形式，只做能落地、有市场价值的白酒包装设计。</p>
+                            <p>作为垂直深耕白酒包装的专业团队，天地润禾二十年来聚焦主业，凭借扎实的专业能力，公司作品屡次入选《亚太设计年鉴》《中国包装设计年鉴》，更斩获包装设计 “世界之星” “中国之星” 等国际权威奖项，专业实力获得行业广泛认可，并与茅台、洋河、五粮液等国内头部酒企建立了长期深度合作关系，并创下诸多佳绩：</p>
+                            <ul class="pl-4 md:pl-5 border-l border-[#D1D1C7] space-y-4 my-8 text-[13px] leading-[1.8] text-[#555]">
+                                <li class="relative before:absolute before:-left-[21px] md:before:-left-[25px] before:top-1.5 before:w-[5px] before:h-[5px] before:bg-brand-red before:rounded-full"><strong class="text-[#1A1A1A] font-bold">2005年</strong>，设计的丹泉酒畅销全国市场；</li>
+                                <li class="relative before:absolute before:-left-[21px] md:before:-left-[25px] before:top-1.5 before:w-[5px] before:h-[5px] before:bg-brand-red before:rounded-full"><strong class="text-[#1A1A1A] font-bold">2006年</strong>，设计的口子窖20年销售突破百亿；</li>
+                                <li class="relative before:absolute before:-left-[21px] md:before:-left-[25px] before:top-1.5 before:w-[5px] before:h-[5px] before:bg-brand-red before:rounded-full"><strong class="text-[#1A1A1A] font-bold">2011年</strong>，“贵宾特制茅台酒” 被国家外交部礼宾司当做国礼送给外国政要及贵宾；</li>
+                                <li class="relative before:absolute before:-left-[21px] md:before:-left-[25px] before:top-1.5 before:w-[5px] before:h-[5px] before:bg-brand-red before:rounded-full"><strong class="text-[#1A1A1A] font-bold">2014年</strong>，设计的茅台股份 “高尔夫酒” 年销售额达到7个亿；</li>
+                                <li class="relative before:absolute before:-left-[21px] md:before:-left-[25px] before:top-1.5 before:w-[5px] before:h-[5px] before:bg-brand-red before:rounded-full"><strong class="text-[#1A1A1A] font-bold">2015年</strong>，精心设计的 “洋河封坛酒”，在封坛大典当天销售超过1个亿；</li>
+                                <li class="relative before:absolute before:-left-[21px] md:before:-left-[25px] before:top-1.5 before:w-[5px] before:h-[5px] before:bg-brand-red before:rounded-full"><strong class="text-[#1A1A1A] font-bold">2021年</strong>，设计的容大酱酒好评如潮，为酱酒风格提供了新的可能；</li>
+                                <li class="relative before:absolute before:-left-[21px] md:before:-left-[25px] before:top-1.5 before:w-[5px] before:h-[5px] before:bg-brand-red before:rounded-full"><strong class="text-[#1A1A1A] font-bold">2022年</strong>，设计的金汾河酒，以独特亮眼的设计成为清香新规。</li>
+                            </ul>
+                            <div class="pl-6 border-l-[1.5px] border-[#D1D1C7] py-2 my-8">
+                                <p class="text-base md:text-lg font-sans italic font-normal text-[#1A1A1A] tracking-widest leading-[1.8]">
+                                    “以 ‘成人之美’ 为文化核心，<br>既成就品牌之美，也成就市场之美。”
+                                </p>
+                            </div>
+                            <p>一直以来，我们始终以归零心态持续迭代认知，用国际视野构创东方美学，因为我们深知，包装是品牌与消费者的 “第一触点”，因此，天地润禾始终坚守 “不极致、不成活” 的创作态度，平衡艺术表达与市场需求，让每一款设计既彰显白酒文化底蕴，又能助力品牌提升市场竞争力。</p>
+                            <p>天地润禾扎根成都，深耕白酒包装设计领域二十载。我们始终坚守初心，专注于为白酒品牌提供专业、务实且充满温度的包装设计解决方案。未来，公司将继续砥砺前行，成为一股受大众认可、客户信赖、同行尊重的中国原创白酒包装设计力量。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="hidden lg:block lg:w-1/2 h-full bg-[#050505] relative overflow-hidden">
+                <img src="https://i.ibb.co/sdsYn5x6/mv-cymm-1.jpg" alt="天地润禾团队" class="w-full h-full object-cover opacity-90 perf-opt" loading="lazy" />
+            </div>
+        </section>
+
+        <!-- ==================== 视图 4: 团队成员 (PEOPLE) ==================== -->
+        <section id="view-people" class="absolute inset-0 w-full h-full z-0 opacity-0 pointer-events-none bg-[var(--bg-paper)] overflow-y-auto custom-scrollbar">
+            <div class="w-full max-w-[1440px] mx-auto px-6 lg:px-12 py-10 md:py-16 lg:py-24 flex flex-col lg:flex-row gap-12 lg:gap-20 items-start">
+                <div class="w-full lg:w-[60%] gs-people-reveal gs-init-hide shrink-0">
+                    <img src="https://i.ibb.co/kvN67Cg/612cbab7422536261de3035c860a755.jpg" alt="核心团队" class="w-full h-auto object-cover shadow-sm grayscale-[0.2] perf-opt" loading="lazy" />
+                </div>
+                <div class="w-full lg:w-[40%] flex flex-col">
+                    <div class="space-y-8 gs-people-reveal gs-init-hide mb-16">
+                        <div>
+                            <span class="block text-[10px] font-bold tracking-[0.2em] text-brand-red uppercase mb-4">Creative Power / 核心力量</span>
+                            <h2 class="text-3xl md:text-5xl font-black text-[#1A1A1A] tracking-tighter leading-tight">抱元守一，<br/>聚精会神</h2>
+                        </div>
+                        <div class="w-12 h-0.5 bg-brand-red"></div>
+                        <div class="space-y-6 text-sm md:text-base font-serif leading-[2.2] text-[#4A4A4A] tracking-wide text-justify">
+                            <p>天地润禾的核心团队由深耕中国白酒视觉领域数十载的资深专家组成。我们不仅是设计师，更是品牌故事的解码者。</p>
+                            <p>从酒体研究到包装工艺，从品牌策略到终端呈现，我们通过跨学科的协作，为每一个产品注入灵魂。每一件作品背后，都是团队对极致完美的执着追求。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 视图 3: 联系我们 (CONTACT) ==================== -->
+        <section id="view-contact" class="absolute inset-0 w-full h-full flex flex-col z-0 opacity-0 pointer-events-none bg-[var(--bg-paper)]">
+            <div class="w-full h-[65vh] lg:h-[75%] shrink-0 relative overflow-hidden border-b bg-[var(--bg-paper)]" style="border-color: var(--border-color);">
+                <div class="w-full relative overflow-hidden gs-contact-reveal gs-init-hide flex flex-col justify-center h-full gap-1 md:gap-2">
+                    <div class="scroll-track-x scroll-left speed-x-mid">
+                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden perf-opt"><img src="https://i.ibb.co/8LMB1S5D/0111.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700" alt="包装案例展示" loading="lazy"></div>
+                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden perf-opt"><img src="https://i.ibb.co/d0QMsb7V/0222.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700" alt="包装案例展示" loading="lazy"></div>
+                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden perf-opt"><img src="https://i.ibb.co/j9BNjvKk/0333.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700" alt="包装案例展示" loading="lazy"></div>
+                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden perf-opt"><img src="https://i.ibb.co/r2yNyvrL/0444.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700" alt="包装案例展示" loading="lazy"></div>
+                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden perf-opt"><img src="https://i.ibb.co/8LMB1S5D/0111.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700" alt="包装案例展示" loading="lazy"></div>
+                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden perf-opt"><img src="https://i.ibb.co/d0QMsb7V/0222.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700" alt="包装案例展示" loading="lazy"></div>
+                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden perf-opt"><img src="https://i.ibb.co/j9BNjvKk/0333.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700" alt="包装案例展示" loading="lazy"></div>
+                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden perf-opt"><img src="https://i.ibb.co/r2yNyvrL/0444.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700" alt="包装案例展示" loading="lazy"></div>
+                    </div>
+                    <div class="scroll-track-x scroll-right speed-x-slow">
+                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden perf-opt"><img src="https://i.ibb.co/TBcL8Qkf/0555.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700" alt="细节展示" loading="lazy"></div>
+                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden perf-opt"><img src="https://i.ibb.co/TqDXcnfF/0666.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700" alt="细节展示" loading="lazy"></div>
+                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden perf-opt"><img src="https://i.ibb.co/qMV8K5gp/0777.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700" alt="细节展示" loading="lazy"></div>
+                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden perf-opt"><img src="https://i.ibb.co/Z1hKwTSP/0888.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700" alt="细节展示" loading="lazy"></div>
+                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden perf-opt"><img src="https://i.ibb.co/TBcL8Qkf/0555.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700" alt="细节展示" loading="lazy"></div>
+                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden perf-opt"><img src="https://i.ibb.co/TqDXcnfF/0666.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700" alt="细节展示" loading="lazy"></div>
+                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden perf-opt"><img src="https://i.ibb.co/qMV8K5gp/0777.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700" alt="细节展示" loading="lazy"></div>
+                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden perf-opt"><img src="https://i.ibb.co/Z1hKwTSP/0888.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700" alt="细节展示" loading="lazy"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="w-full flex-grow flex items-center justify-center p-8 bg-[var(--bg-paper)]">
+                <div class="w-full max-w-[1440px] flex flex-col lg:flex-row items-center justify-around gap-8 text-center">
+                    <div class="gs-contact-reveal gs-init-hide">
+                        <span class="block text-[9px] font-bold tracking-[0.1em] text-[#A0A090] uppercase mb-2 font-sans">Location / 地址</span>
+                        <div class="text-[14px] md:text-[16px] font-sans text-[#1A1A1A] leading-[1.6] tracking-tight">
+                            <p>成都市高新区</p><p>雅和北三路350号宸光和悦1期 5栋2单元 103号</p>
+                        </div>
+                    </div>
+                    <div class="gs-contact-reveal gs-init-hide">
+                        <span class="block text-[9px] font-bold tracking-[0.1em] text-[#A0A090] uppercase mb-2 font-sans">Direct Line / 电话</span>
+                        <a href="tel:13808087931" class="inline-block text-[14px] md:text-[16px] font-sans font-normal text-[#1A1A1A] hover:text-brand-red transition-colors tracking-tight">138-0808-7931</a>
+                    </div>
+                    <div class="gs-contact-reveal gs-init-hide">
+                        <span class="block text-[9px] font-bold tracking-[0.1em] text-[#A0A090] uppercase mb-2 font-sans">E-mail / 邮箱</span>
+                        <a href="mailto:254545105@qq.com" class="inline-block text-[14px] md:text-[16px] font-sans font-normal text-[#1A1A1A] hover:text-brand-red transition-colors tracking-tight">254545105@qq.com</a>
+                    </div>
+                    <div class="gs-contact-reveal gs-init-hide flex flex-col items-center justify-center">
+                        <span class="block text-[9px] font-bold tracking-[0.1em] text-[#A0A090] uppercase mb-2 font-sans">WeChat / 微信扫码</span>
+                        <div class="w-20 h-20 md:w-24 md:h-24 border border-[#E2E2D8] bg-[#FDFDFB] p-1 shadow-sm">
+                            <img src="https://i.ibb.co/gM633VHF/ed7933fd9b6e9835a510d5770c602c7.jpg" class="w-full h-full object-contain" alt="天地润禾微信二维码" loading="lazy">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 无缝详情视图 (CASE DETAIL) ==================== -->
+        <section id="view-detail" class="absolute inset-0 w-full h-full flex flex-col lg:flex-row z-[8000] opacity-0 pointer-events-none bg-black overflow-y-auto lg:overflow-hidden no-scrollbar text-white">
+            <div class="w-full lg:w-1/2 h-[50vh] lg:h-full relative flex items-center justify-center pt-8 lg:pt-0 shrink-0 bg-[#050505]">
+                <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent pointer-events-none z-10 lg:hidden"></div>
+                <img id="detail-img" src="" alt="包装详情" class="gs-detail-reveal opacity-0 h-full w-auto max-w-[85%] object-contain relative z-0 drop-shadow-2xl" />
+            </div>
+            <div class="w-full lg:w-1/2 h-auto lg:h-full overflow-y-visible lg:overflow-y-auto custom-scrollbar flex flex-col items-center lg:items-start justify-center lg:pl-16 xl:pl-24 pr-8 lg:pr-32 pb-24 lg:pt-0 border-l border-white/10 bg-black">
+                <div class="w-full max-w-lg flex flex-col mt-8 lg:mt-0">
+                    <button onclick="closeDetail()" class="gs-detail-reveal opacity-0 group flex items-center gap-2 text-[10px] font-bold text-gray-500 hover:text-white tracking-[0.2em] uppercase transition-colors mb-12 self-start focus:outline-none">
+                        <svg class="w-3 h-3 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                        Back to Works
+                    </button>
+                    <div class="mb-10 text-center lg:text-left">
+                        <span class="block text-[9px] font-bold text-brand-red tracking-[0.25em] uppercase mb-4 gs-detail-reveal opacity-0">Packaging & Visual Design</span>
+                        <h1 id="detail-title-zh" class="text-4xl lg:text-6xl font-serif text-white mb-3 tracking-wide gs-detail-reveal opacity-0">项目名称</h1>
+                        <h2 id="detail-title-en" class="text-xl lg:text-3xl font-light text-gray-400 font-serif tracking-widest gs-detail-reveal opacity-0">Project Name</h2>
+                    </div>
+                    <div class="w-full h-px bg-white/10 mb-8 gs-detail-reveal opacity-0"></div>
+                    <div class="flex flex-col text-center lg:text-left">
+                        <span class="text-[9px] text-gray-500 tracking-[0.2em] uppercase font-semibold mb-5 gs-detail-reveal opacity-0">Design Strategy</span>
+                        <div id="detail-desc" class="space-y-6 text-sm leading-[2.2] text-gray-400 font-sans font-light text-justify md:text-left gs-detail-reveal opacity-0"></div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between w-full mt-16 pt-8 border-t border-white/10 gs-detail-reveal opacity-0">
+                        <button onclick="navigateDetail(-1)" class="group flex items-center gap-2 text-xs uppercase tracking-[0.15em] text-gray-500 hover:text-white transition-colors focus:outline-none">
+                            <span class="transform group-hover:-translate-x-1 transition-transform">←</span> Prev
+                        </button>
+                        <button onclick="navigateDetail(1)" class="group flex items-center gap-2 text-xs uppercase tracking-[0.15em] text-gray-500 hover:text-white transition-colors focus:outline-none">
+                            Next <span class="transform group-hover:translate-x-1 transition-transform">→</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        const caseImages = [
+            { id: "01", src: "https://i.ibb.co/vCYqQ1kz/01.png", en: "01 / Edition", zh: "高端包装视觉", desc: "<p><strong class='font-medium text-gray-200'>【视觉构建】</strong><br/>以极致的设计语言诠释品牌内核，通过创新的材质搭配与视觉呈现，打造在高端白酒市场中独具辨识度的超级符号。</p>" },
+            { id: "02", src: "https://i.ibb.co/VsvdTMD/02.png", en: "02 / Classic", zh: "经典品牌形象", desc: "<p><strong class='font-medium text-gray-200'>【文化转译】</strong><br/>将中国传统生肖元素与现代极简美学相融合，为一线酒水品牌构筑具有东方气韵的经典视觉表达，抢占消费者心智。</p>" },
+            { id: "03", src: "https://i.ibb.co/TD4hKGPD/03.png", en: "03 / Premium", zh: "定制珍藏版设计", desc: "<p><strong class='font-medium text-gray-200'>【工艺打磨】</strong><br/>专为高端白酒量身定制的珍藏版包装。运用烫金与凹凸工艺刻画品牌细节，彰显浑厚大气的东方气度与时间沉淀的价值感。</p>" },
+            { id: "04", src: "https://i.ibb.co/r2LMxGJk/04.png", en: "04 / Heritage", zh: "天地润禾·传承", desc: "<p><strong class='font-medium text-gray-200'>【材质溯源】</strong><br/>以湖南高庙白陶为灵感，复刻史前陶器的泥质肌理与哑光质感。古陶瓮的敦厚轮廓与质朴线条，传递出“土与火的艺术”。</p><p class='mt-6'><strong class='font-medium text-gray-200'>【图腾解码】</strong><br/>抽象纹样源自高庙文化标志性的凤鸟与太阳纹。以极简线条还原史前先民的自然崇拜，暗合神秘酿造工艺与地域根脉。</p>" },
+            { id: "05", src: "https://i.ibb.co/5ybZfnp/05.png", en: "05 / Origin", zh: "原浆系列视觉", desc: "<p><strong class='font-medium text-gray-200'>【本真溯源】</strong><br/>褪去浮华，回归白酒的纯粹。包装设计采用环保原木肌理与棉麻质感，突显原浆原酒的醇厚与不可复制的自然馈赠。</p>" },
+            { id: "06", src: "https://i.ibb.co/zW0V6kbs/06.png", en: "06 / Limited", zh: "限量版设计呈现", desc: "<p><strong class='font-medium text-gray-200'>【稀缺表达】</strong><br/>结合非遗传统工艺与现代3D数字渲染技术，为限量版产品打造出无可比拟的艺术收藏价值与视觉冲击力。</p>" },
+            { id: "07", src: "https://i.ibb.co/LDkwhNxq/07.png", en: "07 / Design", zh: "全案包装设计", desc: "<p><strong class='font-medium text-gray-200'>【系统化思维】</strong><br/>从瓶型开模、外盒结构到防伪标签，提供一站式的全案包装设计服务。确保品牌在终端货架上形成强大的视觉列阵效应。</p>" },
+            { id: "08", src: "https://i.ibb.co/HTkRsVVN/08.png", en: "08 / Visual", zh: "视觉焕新企划", desc: "<p><strong class='font-medium text-gray-200'>【时代新生】</strong><br/>在保留传统名酒品牌核心资产的同时，引入更符合当代审美趋势的几何排版与光影质感，实现老品牌的视觉年轻化迭代。</p>" },
+            { id: "09", src: "https://i.ibb.co/YF0TcFbn/09.png", en: "09 / Concept", zh: "概念包装构思", desc: "<p><strong class='font-medium text-gray-200'>【未来探索】</strong><br/>打破传统白酒的包装定式，尝试融合古玉元素、赛博光影等前沿理念，为品牌探索下一代视觉形态的无限可能。</p>" },
+            { id: "10", src: "https://i.ibb.co/SDhmtWMn/10.png", en: "10 / Identity", zh: "品牌识别系统", desc: "<p><strong class='font-medium text-gray-200'>【心智烙印】</strong><br/>不仅仅是包装，更是品牌IP的延伸。通过极简有力的超级符号，让消费者在繁杂的市场中一眼识别出品牌的纯粹基因。</p>" },
+            { id: "11", src: "https://i.ibb.co/0jdqDBtk/11.png", en: "11 / Craft", zh: "匠心工艺展示", desc: "<p><strong class='font-medium text-gray-200'>【细节微观】</strong><br/>用微距视角的宏大叙事来审视包装材质。从纸张的纹路、金属的倒角到玻璃的折射率，每一处工艺都在讲述“不极致，不成活”。</p>" },
+            { id: "12", src: "https://i.ibb.co/gbD53RqH/12.png", en: "12 / Aesthetic", zh: "东方美学表达", desc: "<p><strong class='font-medium text-gray-200'>【意境留白】</strong><br/>深谙中国画的“计白当黑”。在包装排版中大量使用高级留白，以虚衬实，营造出专属于东方文化的高雅韵味与饮酒雅趣。</p>" },
+            { id: "13", src: "https://i.ibb.co/7dDxvW16/13.png", en: "13 / Future", zh: "未来趋势包装", desc: "<p><strong class='font-medium text-gray-200'>【前沿材料】</strong><br/>探索新型环保与光学材料在包装领域的应用。通过特殊光泽与触感反馈，为消费者提供极具未来感的开箱交互体验。</p>" },
+            { id: "14", src: "https://i.ibb.co/N6BXSCJ5/14.png", en: "14 / Innovation", zh: "创新视觉表达", desc: "<p><strong class='font-medium text-gray-200'>【颠覆重构】</strong><br/>解构传统元素的物理形态，用参数化设计手法进行重组。赋予白酒包装既熟悉又充满科技前卫感的新锐面貌。</p>" },
+            { id: "15", src: "https://i.ibb.co/6R6NPknC/15.png", en: "15 / Experience", zh: "沉浸式包装体验", desc: "<p><strong class='font-medium text-gray-200'>【五感共鸣】</strong><br/>开启包装即是开启一段文化旅程。结合独特的开盒结构与阻尼手感，将单纯的物理容器升华为品牌与消费者的情感交互媒介。</p>" }
+        ];
+
+        let currentDetailIndex = 0; 
+
+        function shuffleArray(array) {
+            let curId = array.length;
+            while (0 !== curId) {
+                let randId = Math.floor(Math.random() * curId);
+                curId -= 1;
+                let tmp = array[curId]; array[curId] = array[randId]; array[randId] = tmp;
+            }
+            return array;
+        }
+
+        function renderSplashGallery() {
+            const splashWrapper = document.getElementById('splash-bg-gallery');
+            if(splashWrapper) {
+                splashWrapper.className = "gallery-wrapper w-full h-full"; 
+                const cols = 15; 
+                const speeds = ['splash-speed-v2', 'splash-speed-v5', 'splash-speed-v1', 'splash-speed-v4', 'splash-speed-v3', 'splash-speed-v1', 'splash-speed-v5', 'splash-speed-v2', 'splash-speed-v4', 'splash-speed-v3', 'splash-speed-v1', 'splash-speed-v2', 'splash-speed-v5', 'splash-speed-v4', 'splash-speed-v3'];
+                const delays = ['-25s', '-100s', '-50s', '-12s', '-75s', '-45s', '-110s', '-5s', '-85s', '-120s', '-35s', '-10s', '-90s', '-65s', '-20s'];
+                
+                for (let i = 0; i < cols; i++) {
+                    const col = document.createElement('div'); 
+                    col.className = `gallery-col border-r border-white/5 perf-opt`; 
+                    const track = document.createElement('div'); 
+                    track.className = `scroll-track ${speeds[i]}`; 
+                    track.style.animationDelay = delays[i];
+                    
+                    let html = '';
+                    for(let k = 0; k < 4; k++) {
+                        const columnItems = shuffleArray([...caseImages]);
+                        columnItems.forEach(item => {
+                            html += `<div class="masonry-item pointer-events-none" style="background-color: transparent; border: none; padding: 4px;"><img src="${item.src}" alt="天地润禾设计案例 ${item.zh}" loading="lazy" decoding="async" style="border-radius: 4px;" /></div>`;
+                        });
+                    }
+                    track.innerHTML = html.repeat(4); 
+                    col.appendChild(track);
+                    splashWrapper.appendChild(col);
+                }
+            }
+        }
+
+        function renderWorksGallery(cols) {
+            const wrapper = document.getElementById('works-gallery-wrapper');
+            wrapper.innerHTML = '';
+            wrapper.className = "gallery-wrapper w-full h-full"; 
+            
+            const shuffledWorks = shuffleArray([...caseImages]);
+            const itemsPerCol = Math.ceil(shuffledWorks.length / cols);
+            const speeds = ['speed-v2', 'speed-v5', 'speed-v1', 'speed-v4', 'speed-v3'];
+            const delays = ['-10s', '-40s', '-20s', '-5s', '-30s'];
+
+            for (let i = 0; i < cols; i++) {
+                const col = document.createElement('div');
+                col.className = `gallery-col border-r border-white/5 perf-opt`;
+                const track = document.createElement('div');
+                track.className = `scroll-track ${speeds[i % 5]}`;
+                track.style.animationDelay = delays[i % 5];
+
+                const chunk = shuffledWorks.slice(i * itemsPerCol, (i + 1) * itemsPerCol);
+                let html = '';
+                chunk.forEach(item => {
+                    html += `<div onclick="openDetail('${item.id}')" class="cursor-pointer masonry-item"><img src="${item.src}" alt="天地润禾 ${item.zh}" loading="lazy" decoding="async" /><div class="overlay"><div class="overlay-content"><p class="text-brand-red text-xs font-bold tracking-widest uppercase mb-1">${item.en}</p><span class="text-white font-serif font-bold text-xl">${item.zh}</span></div></div></div>`;
+                });
+                track.innerHTML = html + html; 
+                col.appendChild(track);
+                wrapper.appendChild(col);
+            }
+        }
+
+        function initResponsiveGalleries() { renderWorksGallery(5); }
+
+        function openDetail(id) {
+            currentDetailIndex = caseImages.findIndex(i => i.id === id);
+            if (currentDetailIndex === -1) currentDetailIndex = 0;
+            renderDetailContent(caseImages[currentDetailIndex]);
+
+            const detailView = document.getElementById('view-detail');
+            gsap.set(".gs-detail-reveal", { opacity: 0, y: 15 });
+            gsap.to(detailView, { opacity: 1, duration: 0.45, ease: "power2.out", pointerEvents: "auto", zIndex: 8000 });
+            gsap.to(".gs-detail-reveal", { opacity: 1, y: 0, duration: 0.7, stagger: 0.08, ease: "power3.out", delay: 0.1 });
+        }
+        
+        function renderDetailContent(item) {
+            const imgEl = document.getElementById('detail-img');
+            imgEl.src = item.src;
+            imgEl.alt = `${item.zh} 包装设计`;
+            document.getElementById('detail-title-zh').textContent = item.zh;
+            document.getElementById('detail-title-en').textContent = item.en;
+            document.getElementById('detail-desc').innerHTML = item.desc;
+        }
+
+        function navigateDetail(direction) {
+            let nextIndex = currentDetailIndex + direction;
+            if (nextIndex < 0) nextIndex = caseImages.length - 1;
+            if (nextIndex >= caseImages.length) nextIndex = 0;
+            
+            currentDetailIndex = nextIndex;
+            const newItem = caseImages[currentDetailIndex];
+            
+            gsap.to(".gs-detail-reveal, #detail-img", { opacity: 0, y: 5, duration: 0.2, ease: "power1.in", onComplete: () => {
+                renderDetailContent(newItem);
+                gsap.to(".gs-detail-reveal, #detail-img", { opacity: 1, y: 0, duration: 0.4, stagger: 0.05, ease: "power2.out" });
+            }});
+        }
+
+        function closeDetail() {
+            const detailView = document.getElementById('view-detail');
+            gsap.to(detailView, { opacity: 0, duration: 0.35, ease: "power2.in", pointerEvents: "none", zIndex: 0 });
+        }
+
+        let mobileMenuOpen = false;
+        function toggleMobileMenu() {
+            mobileMenuOpen = !mobileMenuOpen;
+            const menu = document.getElementById('mobile-menu');
+            const iconPath = document.getElementById('hamburger-icon');
+            const svgIcon = document.getElementById('hamburger-svg');
+            
+            if (mobileMenuOpen) {
+                menu.classList.remove('pointer-events-none', 'opacity-0');
+                menu.classList.add('opacity-100', 'pointer-events-auto');
+                svgIcon.classList.add('rotate-90'); 
+                iconPath.setAttribute('d', 'M6 18L18 6M6 6l12 12'); 
+            } else {
+                menu.classList.add('pointer-events-none', 'opacity-0');
+                menu.classList.remove('opacity-100', 'pointer-events-auto');
+                svgIcon.classList.remove('rotate-90');
+                iconPath.setAttribute('d', 'M4 6h16M4 12h16M4 18h16'); 
+            }
+        }
+        
+        function switchMobileView(target) {
+            toggleMobileMenu();
+            setTimeout(() => { switchView(target); }, 200); 
+        }
+
+        let hasEnteredSite = false;
+        function enterSite() {
+            if (hasEnteredSite) return;
+            hasEnteredSite = true;
+            
+            const tl = gsap.timeline();
+            gsap.to(".splash-hint", { opacity: 0, duration: 0.3 });
+            
+            tl.to("#splash-bg-container", { scale: 1.15, opacity: 0, duration: 1.2, ease: "power2.inOut" }, 0);
+            tl.to(".splash-text", { scale: 1.05, opacity: 0, duration: 1.0, ease: "power2.inOut" }, 0);
+            
+            tl.to("#splash-screen", { 
+                opacity: 0, duration: 0.8, ease: "power1.inOut", 
+                onComplete: () => { document.getElementById('splash-screen').style.display = 'none'; } 
+            }, 0.4);
+            
+            setTimeout(() => {
+                switchView('company');
+                gsap.fromTo("header", { y: -10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "power2.out" });
+            }, 700);
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            renderSplashGallery();
+            initResponsiveGalleries();
+            
+            gsap.fromTo(".splash-text", { opacity: 0, scale: 0.98, y: 10 }, { opacity: 1, scale: 1, y: 0, duration: 1.6, ease: "power2.out", delay: 0.3 });
+            
+            document.querySelector('.gallery-wrapper')?.addEventListener('wheel', (e) => {
+                const worksView = document.getElementById('view-works');
+                if (worksView?.style.opacity === '0') return;
+                const tracks = document.querySelectorAll('#works-gallery-wrapper .scroll-track');
+                tracks.forEach(track => {
+                    const anim = track.getAnimations()[0];
+                    if (anim) {
+                        const duration = anim.effect.getComputedTiming().duration;
+                        let newTime = anim.currentTime + (e.deltaY * 2.5);
+                        anim.currentTime = newTime < 0 ? duration + (newTime % duration) : newTime % duration;
+                    }
+                });
+            }, { passive: true });
+        });
+
+        function switchView(target) {
+            closeDetail();
+            
+            const noiseBg = document.getElementById('global-noise');
+            if (noiseBg) {
+                noiseBg.style.opacity = (target === 'works' || target === 'contact') ? '0' : '0.035';
+            }
+
+            const views = {
+                'company': { nav: 'nav-company', el: 'view-company', reveal: '.gs-company-reveal' },
+                'works': { nav: 'nav-works', el: 'view-works', reveal: '.gs-works-fade' },
+                'people': { nav: 'nav-people', el: 'view-people', reveal: '.gs-people-reveal' },
+                'contact': { nav: 'nav-contact', el: 'view-contact', reveal: '.gs-contact-reveal' }
+            };
+            
+            Object.keys(views).forEach(key => {
+                const config = views[key];
+                const nav = document.getElementById(config.nav), el = document.getElementById(config.el);
+                const mobNav = document.getElementById('mob-nav-' + key);
+                
+                if (!nav || !el) return;
+                
+                if (key === target) {
+                    nav.classList.add('nav-active');
+                    if(mobNav) { mobNav.classList.add('text-brand-red'); mobNav.classList.remove('text-[#1A1A1A]'); }
+                    
+                    gsap.to(el, { opacity: 1, duration: 0.45, ease: "power2.out", pointerEvents: "auto", zIndex: 10 });
+                    
+                    if (key === 'works') {
+                        gsap.fromTo(config.reveal, { opacity: 0 }, { opacity: 1, duration: 1, ease: "power2.out", delay: 0.1 });
+                    } else if (config.reveal && document.querySelectorAll(config.reveal).length > 0) {
+                        gsap.fromTo(config.reveal, { y: 15, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, stagger: 0.05, ease: "power3.out", delay: 0.1 });
+                    }
+                } else {
+                    nav.classList.remove('nav-active');
+                    if(mobNav) { mobNav.classList.remove('text-brand-red'); mobNav.classList.add('text-[#1A1A1A]'); }
+                    
+                    gsap.to(el, { opacity: 0, duration: 0.35, ease: "power2.in", pointerEvents: "none", zIndex: 0 });
+                }
+            });
+        }
+    </script>
+</body>
+</html>
