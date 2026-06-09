@@ -60,7 +60,7 @@
                 text-orientation: upright;
                 letter-spacing: 0.35em;
                 font-size: 2.2rem;
-                height: 60vh;
+                white-space: nowrap; /* 强制不换列，保持单列竖排 */
             }
         }
         
@@ -96,7 +96,7 @@
             animation: scrollUp linear infinite; will-change: transform;
         }
 
-        /* 恢复丢失的瀑布流滚动速度配置 */
+        /* 恢复瀑布流滚动速度配置 */
         .speed-v1 { animation-duration: 26s; } 
         .speed-v2 { animation-duration: 27s; } 
         .speed-v3 { animation-duration: 22s; } 
@@ -187,7 +187,7 @@
         <div class="splash-text gs-splash-text">
             <span>天地润禾</span>
             <span class="comma hidden md:inline">，</span>
-            <span class="inline-block md:hidden h-10 w-full"></span> <!-- 移动端竖排强制换行留白 -->
+            <span class="inline-block md:hidden h-12 w-0"></span> <!-- 移动端竖排垂直留白，移除 w-full 防止断列 -->
             <span>成人之美</span>
         </div>
         <div class="splash-hint gs-splash-text">Click To Enter</div>
