@@ -50,20 +50,18 @@
             letter-spacing: 0.15em; font-family: 'Noto Sans SC', sans-serif;
             position: relative; z-index: 10; text-align: center;
             text-shadow: 0 0 40px rgba(0,0,0,0.8);
-            transition: transform 0.1s;
-            display: flex; flex-direction: row; align-items: center; justify-content: center;
+            transition: letter-spacing 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.1s;
         }
 
-        /* 移动端竖排文字适配 - 优化间距，使其更紧凑 */
+        /* 移动端竖排文字适配 */
         @media (max-width: 768px) {
             .splash-text {
                 writing-mode: vertical-rl;
                 text-orientation: upright;
-                letter-spacing: 0.25em; /* 减小字间距 */
+                letter-spacing: 0.35em;
                 font-size: 2.2rem;
-                height: auto; 
-                flex-direction: column;
-                white-space: nowrap;
+                height: 60vh;
+                white-space: nowrap; 
             }
         }
         
@@ -99,7 +97,6 @@
             animation: scrollUp linear infinite; will-change: transform;
         }
 
-        /* 恢复丢失的瀑布流滚动速度配置 */
         .speed-v1 { animation-duration: 26s; } 
         .speed-v2 { animation-duration: 27s; } 
         .speed-v3 { animation-duration: 22s; } 
@@ -173,11 +170,29 @@
         @media (max-width: 768px) {
             #view-works .masonry-item { background-color: transparent; border-bottom: none; }
             #view-works .gallery-col { border-right: none !important; }
-            .overlay { opacity: 1 !important; background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0) 60%, transparent 100%); padding: 1.2rem 1rem; }
-            .overlay-content { transform: translateY(0) !important; }
-            .overlay-content p { font-size: 0.65rem; }
-            .overlay-content span { font-size: 1.1rem; }
+            
+            /* 【优化点1】：移动端彻底隐藏文字注解层，保持沉浸式干净画廊 */
+            .overlay { display: none !important; } 
         }
+
+        /* 移动端菜单激活的高级细黑体样式 */
+        .mobile-nav-btn {
+            font-family: 'Noto Sans SC', sans-serif;
+            font-weight: 300; /* 细体 */
+            letter-spacing: 0.15em; /* 拉开字距 */
+            font-size: 1.1rem;
+            color: #333;
+            transition: color 0.3s ease;
+        }
+        .mobile-nav-btn span {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.8rem;
+            letter-spacing: 0.2em;
+            color: #888;
+            margin-left: 0.5rem;
+            text-transform: uppercase;
+        }
+        .mobile-nav-btn:hover { color: var(--brand-red); }
     </style>
 </head>
 <body class="no-scrollbar">
@@ -189,9 +204,8 @@
         </div>
         <div class="splash-text gs-splash-text">
             <span>天地润禾</span>
-            <span class="comma hidden md:inline">&nbsp;</span>
-            <!-- 减小移动端的间距分隔块 -->
-            <span class="inline-block md:hidden h-8 w-0"></span> 
+            <span class="comma hidden md:inline">，</span>
+            <span class="inline-block md:hidden h-12 w-0"></span> <!-- 移动端竖排无横向宽度留白 -->
             <span>成人之美</span>
         </div>
         <div class="splash-hint gs-splash-text">Click To Enter</div>
@@ -204,7 +218,7 @@
         <div class="w-full h-full flex items-center justify-between pl-4 pr-6 md:pl-6 lg:pl-8 lg:pr-16">
             <div class="flex items-center gs-header">
                 <button onclick="switchView('company')" class="group flex items-center justify-start transition-opacity duration-300 hover:opacity-70 focus:outline-none cursor-pointer">
-                    <img src="https://i.ibb.co/27SD6Ytc/image.png" alt="天地润禾设计" class="h-6 md:h-7 w-auto object-contain" />
+                    <img src="https://i.ibb.co/27SD6Ytc/image.png" alt="天地润禾设计" class="h-8 md:h-10 w-auto object-contain" />
                 </button>
             </div>
 
@@ -233,17 +247,17 @@
         </div>
     </header>
 
-    <!-- 补充：移动端菜单覆盖层 -->
-    <div id="mobile-menu" class="fixed inset-0 z-[60] bg-[var(--bg-paper)] flex flex-col items-center justify-center gap-10 opacity-0 pointer-events-none transition-opacity duration-300">
+    <!-- 【优化点2】：移动端菜单覆盖层，高级黑体排版 -->
+    <div id="mobile-menu" class="fixed inset-0 z-[60] bg-[var(--bg-paper)] flex flex-col items-center justify-center gap-12 opacity-0 pointer-events-none transition-opacity duration-300">
         <button onclick="toggleMobileMenu()" class="absolute top-4 right-6 p-2 text-[#1A1A1A] focus:outline-none">
             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
         </button>
-        <button onclick="switchView('company'); toggleMobileMenu();" class="text-xl md:text-2xl font-serif tracking-widest text-main hover:text-brand-red transition-colors">关于我们 / Company</button>
-        <button onclick="switchView('works'); toggleMobileMenu();" class="text-xl md:text-2xl font-serif tracking-widest text-main hover:text-brand-red transition-colors">项目作品 / Works</button>
-        <button onclick="switchView('people'); toggleMobileMenu();" class="text-xl md:text-2xl font-serif tracking-widest text-main hover:text-brand-red transition-colors">核心团队 / People</button>
-        <button onclick="switchView('contact'); toggleMobileMenu();" class="text-xl md:text-2xl font-serif tracking-widest text-main hover:text-brand-red transition-colors">联系方式 / Contact</button>
+        <button onclick="switchView('company'); toggleMobileMenu();" class="mobile-nav-btn">关于我们<span>Company</span></button>
+        <button onclick="switchView('works'); toggleMobileMenu();" class="mobile-nav-btn">项目作品<span>Works</span></button>
+        <button onclick="switchView('people'); toggleMobileMenu();" class="mobile-nav-btn">核心团队<span>People</span></button>
+        <button onclick="switchView('contact'); toggleMobileMenu();" class="mobile-nav-btn">联系方式<span>Contact</span></button>
     </div>
 
     <main class="relative flex-grow w-full overflow-hidden">
@@ -258,7 +272,6 @@
         <!-- ==================== 视图 2: 公司简介 (COMPANY) ==================== -->
         <section id="view-company" class="absolute inset-0 w-full h-full flex flex-col lg:flex-row z-[20] opacity-0 pointer-events-none bg-[var(--bg-paper)]">
             <div class="w-full lg:w-1/2 h-full overflow-y-auto custom-scrollbar border-r relative" style="border-color: var(--border-color);">
-                <!-- 优化移动端内边距，提升阅读透气感 -->
                 <div class="relative z-10 w-full max-w-2xl mx-auto px-6 py-12 lg:px-16 lg:pt-24 min-h-full flex flex-col justify-start text-left">
                     <div class="w-full max-w-[540px] mx-auto lg:mx-0">
                         <div class="mb-10 gs-company-reveal gs-init-hide">
@@ -658,19 +671,50 @@
             
             gsap.fromTo(".splash-text", { opacity: 0, scale: 0.98, y: 10 }, { opacity: 1, scale: 1, y: 0, duration: 1.6, ease: "power2.out", delay: 0.3 });
             
-            document.querySelector('.gallery-wrapper')?.addEventListener('wheel', (e) => {
-                const worksView = document.getElementById('view-works');
-                if (worksView?.style.opacity === '0') return;
+            // --- 【优化点】：整合鼠标滚轮与移动端手指滑动交互 ---
+            const galleryWrapper = document.querySelector('.gallery-wrapper');
+            if (galleryWrapper) {
+                // 1. 鼠标滚轮逻辑 (桌面端)
+                galleryWrapper.addEventListener('wheel', (e) => {
+                    const worksView = document.getElementById('view-works');
+                    if (worksView?.style.opacity === '0') return;
+                    e.preventDefault(); // 阻止默认滚动，让我们的动画控制接管
+                    shiftGalleryTime(e.deltaY * 2.5);
+                }, { passive: false });
+
+                // 2. 原生触摸滑动逻辑 (移动端)
+                let touchStartY = 0;
+                galleryWrapper.addEventListener('touchstart', (e) => {
+                    touchStartY = e.touches[0].clientY;
+                }, { passive: true });
+
+                galleryWrapper.addEventListener('touchmove', (e) => {
+                    const worksView = document.getElementById('view-works');
+                    if (worksView?.style.opacity === '0') return;
+                    e.preventDefault(); // 防止触发页面层面的橡皮筋滚动效果
+                    
+                    const touchCurrentY = e.touches[0].clientY;
+                    // Y轴差值：手向上划(负数)，页面往下走，也就是动画正向加速
+                    const deltaY = touchStartY - touchCurrentY; 
+                    shiftGalleryTime(deltaY * 4.0); // 移动端可以给大一点的摩擦系数
+                    
+                    touchStartY = touchCurrentY; // 重置起点，实现连续拖拽
+                }, { passive: false });
+            }
+            
+            // 核心的时间轴拨动函数，服务于上述两种输入方式
+            function shiftGalleryTime(amount) {
                 const tracks = document.querySelectorAll('#works-gallery-wrapper .scroll-track');
                 tracks.forEach(track => {
                     const anim = track.getAnimations()[0];
                     if (anim) {
                         const duration = anim.effect.getComputedTiming().duration;
-                        let newTime = anim.currentTime + (e.deltaY * 2.5);
+                        let newTime = anim.currentTime + amount;
+                        // 确保循环时不产生断层
                         anim.currentTime = newTime < 0 ? duration + (newTime % duration) : newTime % duration;
                     }
                 });
-            }, { passive: true });
+            }
             
             // 监听窗口缩放，防抖重置瀑布流列数
             let resizeTimer;
