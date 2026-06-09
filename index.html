@@ -175,10 +175,10 @@
             .overlay { display: none !important; } 
         }
 
-        /* 移动端菜单激活的高级细黑体样式 */
+        /* 移动端菜单激活的高级黑体样式 */
         .mobile-nav-btn {
             font-family: 'Noto Sans SC', sans-serif;
-            font-weight: 300; /* 细体 */
+            font-weight: 500; /* 加粗一些 */
             letter-spacing: 0.15em; /* 拉开字距 */
             font-size: 1.1rem;
             color: #333;
@@ -204,8 +204,8 @@
         </div>
         <div class="splash-text gs-splash-text">
             <span>天地润禾</span>
-            <span class="comma hidden md:inline">，</span>
-            <span class="inline-block md:hidden h-12 w-0"></span> <!-- 移动端竖排无横向宽度留白 -->
+            <span class="hidden md:inline">&nbsp;&nbsp;</span>
+            <span class="inline-block md:hidden h-4 w-0"></span> <!-- 移动端竖排缩小间距 -->
             <span>成人之美</span>
         </div>
         <div class="splash-hint gs-splash-text">Click To Enter</div>
@@ -696,7 +696,7 @@
                     const touchCurrentY = e.touches[0].clientY;
                     // Y轴差值：手向上划(负数)，页面往下走，也就是动画正向加速
                     const deltaY = touchStartY - touchCurrentY; 
-                    shiftGalleryTime(deltaY * 4.0); // 移动端可以给大一点的摩擦系数
+                    shiftGalleryTime(deltaY * 12.0); // 增加时间映射系数，使拖拽更加“跟手”
                     
                     touchStartY = touchCurrentY; // 重置起点，实现连续拖拽
                 }, { passive: false });
