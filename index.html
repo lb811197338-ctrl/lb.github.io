@@ -4,9 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>天地润禾设计 | 2024 品牌视觉报告</title>
-    <!-- 引入 Tailwind 和 GSAP -->
+    <!-- 引入 Tailwind, GSAP 和 Three.js -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&family=Noto+Serif+SC:wght@200;400;700;900&display=swap');
 
@@ -34,20 +35,14 @@
             position: fixed; inset: 0; background-color: #000000; z-index: 10000;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             cursor: pointer; overflow: hidden;
-            will-change: opacity;
         }
         
+        /* 针对 3D 粒子的全屏重置背景容器 */
         #splash-bg-container {
             position: absolute;
-            width: 300vmax; height: 300vmax; 
-            left: 50%; top: 50%;
-            transform: translate(-50%, -50%) rotate(-45deg);
-            opacity: 0.10; 
-            pointer-events: none;
-            /* 亮度提升为 1.2，在幽暗中凸显细节 */
-            filter: grayscale(100%) brightness(1.2); 
-            z-index: 1;
-            will-change: transform, opacity;
+            inset: 0; width: 100vw; height: 100vh; 
+            z-index: 1; pointer-events: none;
+            opacity: 1; filter: none; transform: none;
         }
 
         .splash-text {
@@ -55,7 +50,6 @@
             letter-spacing: 0.15em; font-family: 'Noto Sans SC', sans-serif;
             position: relative; z-index: 10; text-align: center;
             text-shadow: 0 0 40px rgba(0,0,0,0.8);
-            will-change: transform, opacity;
         }
         
         .splash-hint {
@@ -82,31 +76,34 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* --- 画廊动画 --- */
+        /* --- 画廊垂直滚动核心动画 --- */
         .gallery-wrapper { display: flex; width: 100%; height: 100%; }
         .gallery-col { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-        .scroll-track { display: flex; flex-direction: column; width: 100%; animation: scrollUp linear infinite; will-change: transform; }
+        .scroll-track {
+            display: flex; flex-direction: column; width: 100%;
+            animation: scrollUp linear infinite; will-change: transform;
+        }
         
-        .speed-v1 { animation-duration: 26s; } .speed-v2 { animation-duration: 27s; } 
-        .speed-v3 { animation-duration: 22s; } .speed-v4 { animation-duration: 23s; } 
+        /* 内部常规画廊速度 */
+        .speed-v1 { animation-duration: 26s; } 
+        .speed-v2 { animation-duration: 27s; } 
+        .speed-v3 { animation-duration: 22s; } 
+        .speed-v4 { animation-duration: 23s; } 
         .speed-v5 { animation-duration: 36s; } 
-
-        /* 极度缓慢的首屏瀑布流 */
-        .splash-speed-v1 { animation-duration: 350s; } .splash-speed-v2 { animation-duration: 380s; } 
-        .splash-speed-v3 { animation-duration: 280s; } .splash-speed-v4 { animation-duration: 320s; } 
-        .splash-speed-v5 { animation-duration: 450s; }
 
         @keyframes scrollUp { 0% { transform: translateY(0); } 100% { transform: translateY(-50%); } }
 
-        /* --- Contact横向滚动动画 --- */
+        /* --- Contact: 横向滚动动画 --- */
         .scroll-track-x { display: flex; flex-direction: row; width: max-content; will-change: transform; }
         .scroll-left { animation: scrollLeft linear infinite; }
         .scroll-right { animation: scrollRight linear infinite; }
-        .speed-x-mid { animation-duration: 90s; } .speed-x-slow { animation-duration: 120s; }
+        .speed-x-fast { animation-duration: 60s; }
+        .speed-x-mid { animation-duration: 90s; }
+        .speed-x-slow { animation-duration: 120s; }
         @keyframes scrollLeft { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
         @keyframes scrollRight { 0% { transform: translateX(-50%); } 100% { transform: translateX(0); } }
 
-        /* --- Works基础样式 --- */
+        /* --- Works: 页面悬停交互 --- */
         .masonry-item {
             display: block; width: 100%; overflow: hidden; position: relative;
             background-color: #050505; border-bottom: 1px solid #111;
@@ -132,21 +129,31 @@
         .gs-init-hide { opacity: 0; }
 
         /* 导航菜单互动样式 */
-        .nav-link-container { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; overflow: hidden; cursor: pointer; }
-        .nav-eng { display: block; color: #9CA3AF; transition: transform 0.45s cubic-bezier(0.19, 1, 0.22, 1), color 0.3s ease; }
-        .nav-zh { position: absolute; display: block; opacity: 0; transform: translateY(18px); transition: transform 0.45s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.3s ease; font-weight: 500; font-size: 10px; color: var(--text-main); white-space: nowrap; letter-spacing: 0.15em; }
+        .nav-link-container {
+            position: relative; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; height: 100%;
+            overflow: hidden; cursor: pointer;
+        }
+        .nav-eng {
+            display: block; color: #9CA3AF;
+            transition: transform 0.45s cubic-bezier(0.19, 1, 0.22, 1), color 0.3s ease;
+        }
+        .nav-zh {
+            position: absolute; display: block; opacity: 0;
+            transform: translateY(18px);
+            transition: transform 0.45s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.3s ease, color 0.3s ease;
+            font-weight: 500; font-size: 10px; color: var(--text-main);
+            white-space: nowrap; letter-spacing: 0.15em;
+        }
         .group:hover .nav-eng { transform: translateY(-8px); color: var(--text-main) !important; }
-        .group:hover .nav-zh { opacity: 1; transform: translateY(8px); }
+        .group:hover .nav-zh { opacity: 1; transform: translateY(8px); color: var(--brand-red); }
+        .nav-active .nav-eng { color: var(--text-main); }
+        .nav-active .nav-zh { color: var(--brand-red); }
+        .nav-active::after {
+            content: ''; position: absolute; bottom: 0; left: 15%; width: 70%;
+            height: 1.5px; background-color: var(--brand-red); transform-origin: center;
+        }
         
-        /* 导航高亮颜色效果：当前页英文和悬浮中文变红 */
-        .nav-active .nav-eng { color: var(--brand-red) !important; }
-        .nav-active .nav-zh { color: var(--brand-red) !important; }
-        .nav-active.group:hover .nav-eng { color: var(--brand-red) !important; }
-        .nav-active::after { content: ''; position: absolute; bottom: 0; left: 15%; width: 70%; height: 1.5px; background-color: var(--brand-red); transform-origin: center; }
-        
-        /* 性能优化 */
-        .perf-opt { content-visibility: auto; contain: paint; }
-
         @media (max-width: 768px) {
             #view-works .masonry-item { background-color: transparent; border-bottom: none; padding: 1.5rem 0.75rem; }
             #view-works .gallery-col { border-right: none !important; }
@@ -158,30 +165,20 @@
     <!-- 1. 初始黑色开屏层 -->
     <div id="splash-screen" onclick="enterSite()">
         <div id="splash-bg-container">
-            <div id="splash-bg-gallery" class="w-full h-full"></div>
+            <!-- 3D 粒子环境将在这里被渲染 -->
         </div>
         <div class="splash-text gs-splash-text">天地润禾 &nbsp; 成人之美</div>
         <div class="splash-hint gs-splash-text">Click To Enter</div>
     </div>
 
-    <!-- 移动端全屏菜单 -->
-    <div id="mobile-menu" class="fixed inset-0 bg-[#F7F7F2] z-[40] flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
-        <nav class="flex flex-col items-center gap-10">
-            <button id="mob-nav-company" onclick="switchMobileView('company')" class="text-3xl font-serif text-[#1A1A1A] tracking-widest uppercase hover:text-brand-red transition-colors">Company</button>
-            <button id="mob-nav-works" onclick="switchMobileView('works')" class="text-3xl font-serif text-[#1A1A1A] tracking-widest uppercase hover:text-brand-red transition-colors">Works</button>
-            <button id="mob-nav-people" onclick="switchMobileView('people')" class="text-3xl font-serif text-[#1A1A1A] tracking-widest uppercase hover:text-brand-red transition-colors">People</button>
-            <button id="mob-nav-contact" onclick="switchMobileView('contact')" class="text-3xl font-serif text-[#1A1A1A] tracking-widest uppercase hover:text-brand-red transition-colors">Contact</button>
-        </nav>
-    </div>
-
     <div class="noise-bg" id="global-noise"></div>
 
     <!-- 2. 全局顶部导航层 -->
-    <header class="w-full h-12 md:h-14 border-b relative z-50 shrink-0 gs-init-hide" style="border-color: var(--border-color); background-color: var(--bg-paper);">
+    <header class="w-full h-14 md:h-16 border-b relative z-50 shrink-0 gs-init-hide" style="border-color: var(--border-color); background-color: var(--bg-paper);">
         <div class="w-full h-full flex items-center justify-between pl-4 pr-6 md:pl-6 lg:pl-8 lg:pr-16">
-            <div class="flex items-center gs-header relative z-50">
+            <div class="flex items-center gs-header">
                 <button onclick="switchView('company')" class="group flex items-center justify-start transition-opacity duration-300 hover:opacity-70 focus:outline-none cursor-pointer">
-                    <img src="https://i.ibb.co/27SD6Ytc/image.png" alt="天地润禾设计 LOGO" class="h-5 md:h-6 w-auto object-contain" />
+                    <img src="https://i.ibb.co/27SD6Ytc/image.png" alt="天地润禾设计" class="h-6 md:h-7 w-auto object-contain" />
                 </button>
             </div>
 
@@ -200,15 +197,28 @@
                 </button>
             </nav>
 
-            <div class="md:hidden flex items-center justify-end gs-header relative z-50">
+            <div class="md:hidden flex items-center justify-end gs-header">
                 <button onclick="toggleMobileMenu()" id="hamburger-btn" class="text-[#1A1A1A] focus:outline-none p-2 transition-colors duration-300">
-                    <svg class="w-6 h-6 transition-transform duration-300" id="hamburger-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path id="hamburger-icon" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"></path>
                     </svg>
                 </button>
             </div>
         </div>
     </header>
+
+    <!-- 补充：移动端菜单覆盖层 -->
+    <div id="mobile-menu" class="fixed inset-0 z-[60] bg-[var(--bg-paper)] flex flex-col items-center justify-center gap-10 opacity-0 pointer-events-none transition-opacity duration-300">
+        <button onclick="toggleMobileMenu()" class="absolute top-4 right-6 p-2 text-[#1A1A1A] focus:outline-none">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+        <button onclick="switchView('company'); toggleMobileMenu();" class="text-2xl font-serif tracking-widest text-main hover:text-brand-red transition-colors">关于我们 / Company</button>
+        <button onclick="switchView('works'); toggleMobileMenu();" class="text-2xl font-serif tracking-widest text-main hover:text-brand-red transition-colors">项目作品 / Works</button>
+        <button onclick="switchView('people'); toggleMobileMenu();" class="text-2xl font-serif tracking-widest text-main hover:text-brand-red transition-colors">核心团队 / People</button>
+        <button onclick="switchView('contact'); toggleMobileMenu();" class="text-2xl font-serif tracking-widest text-main hover:text-brand-red transition-colors">联系方式 / Contact</button>
+    </div>
 
     <main class="relative flex-grow w-full overflow-hidden">
 
@@ -259,7 +269,7 @@
                 </div>
             </div>
             <div class="hidden lg:block lg:w-1/2 h-full bg-[#050505] relative overflow-hidden">
-                <img src="https://i.ibb.co/sdsYn5x6/mv-cymm-1.jpg" alt="天地润禾团队" class="w-full h-full object-cover opacity-90 perf-opt" loading="lazy" />
+                <img src="https://i.ibb.co/sdsYn5x6/mv-cymm-1.jpg" alt="天地润禾" class="w-full h-full object-cover opacity-90" />
             </div>
         </section>
 
@@ -267,7 +277,7 @@
         <section id="view-people" class="absolute inset-0 w-full h-full z-0 opacity-0 pointer-events-none bg-[var(--bg-paper)] overflow-y-auto custom-scrollbar">
             <div class="w-full max-w-[1440px] mx-auto px-6 lg:px-12 py-10 md:py-16 lg:py-24 flex flex-col lg:flex-row gap-12 lg:gap-20 items-start">
                 <div class="w-full lg:w-[60%] gs-people-reveal gs-init-hide shrink-0">
-                    <img src="https://i.ibb.co/kvN67Cg/612cbab7422536261de3035c860a755.jpg" alt="核心团队" class="w-full h-auto object-cover shadow-sm grayscale-[0.2] perf-opt" loading="lazy" />
+                    <img src="https://i.ibb.co/kvN67Cg/612cbab7422536261de3035c860a755.jpg" alt="团队" class="w-full h-auto object-cover shadow-sm grayscale-[0.2]" />
                 </div>
                 <div class="w-full lg:w-[40%] flex flex-col">
                     <div class="space-y-8 gs-people-reveal gs-init-hide mb-16">
@@ -290,24 +300,24 @@
             <div class="w-full h-[65vh] lg:h-[75%] shrink-0 relative overflow-hidden border-b bg-[var(--bg-paper)]" style="border-color: var(--border-color);">
                 <div class="w-full relative overflow-hidden gs-contact-reveal gs-init-hide flex flex-col justify-center h-full gap-1 md:gap-2">
                     <div class="scroll-track-x scroll-left speed-x-mid">
-                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden perf-opt"><img src="https://i.ibb.co/8LMB1S5D/0111.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700" alt="包装案例展示" loading="lazy"></div>
-                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden perf-opt"><img src="https://i.ibb.co/d0QMsb7V/0222.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700" alt="包装案例展示" loading="lazy"></div>
-                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden perf-opt"><img src="https://i.ibb.co/j9BNjvKk/0333.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700" alt="包装案例展示" loading="lazy"></div>
-                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden perf-opt"><img src="https://i.ibb.co/r2yNyvrL/0444.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700" alt="包装案例展示" loading="lazy"></div>
-                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden perf-opt"><img src="https://i.ibb.co/8LMB1S5D/0111.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700" alt="包装案例展示" loading="lazy"></div>
-                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden perf-opt"><img src="https://i.ibb.co/d0QMsb7V/0222.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700" alt="包装案例展示" loading="lazy"></div>
-                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden perf-opt"><img src="https://i.ibb.co/j9BNjvKk/0333.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700" alt="包装案例展示" loading="lazy"></div>
-                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden perf-opt"><img src="https://i.ibb.co/r2yNyvrL/0444.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700" alt="包装案例展示" loading="lazy"></div>
+                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden"><img src="https://i.ibb.co/8LMB1S5D/0111.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700"></div>
+                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden"><img src="https://i.ibb.co/d0QMsb7V/0222.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700"></div>
+                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden"><img src="https://i.ibb.co/j9BNjvKk/0333.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700"></div>
+                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden"><img src="https://i.ibb.co/r2yNyvrL/0444.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700"></div>
+                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden"><img src="https://i.ibb.co/8LMB1S5D/0111.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700"></div>
+                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden"><img src="https://i.ibb.co/d0QMsb7V/0222.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700"></div>
+                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden"><img src="https://i.ibb.co/j9BNjvKk/0333.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700"></div>
+                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden"><img src="https://i.ibb.co/r2yNyvrL/0444.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700"></div>
                     </div>
                     <div class="scroll-track-x scroll-right speed-x-slow">
-                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden perf-opt"><img src="https://i.ibb.co/TBcL8Qkf/0555.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700" alt="细节展示" loading="lazy"></div>
-                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden perf-opt"><img src="https://i.ibb.co/TqDXcnfF/0666.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700" alt="细节展示" loading="lazy"></div>
-                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden perf-opt"><img src="https://i.ibb.co/qMV8K5gp/0777.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700" alt="细节展示" loading="lazy"></div>
-                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden perf-opt"><img src="https://i.ibb.co/Z1hKwTSP/0888.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700" alt="细节展示" loading="lazy"></div>
-                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden perf-opt"><img src="https://i.ibb.co/TBcL8Qkf/0555.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700" alt="细节展示" loading="lazy"></div>
-                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden perf-opt"><img src="https://i.ibb.co/TqDXcnfF/0666.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700" alt="细节展示" loading="lazy"></div>
-                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden perf-opt"><img src="https://i.ibb.co/qMV8K5gp/0777.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700" alt="细节展示" loading="lazy"></div>
-                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden perf-opt"><img src="https://i.ibb.co/Z1hKwTSP/0888.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700" alt="细节展示" loading="lazy"></div>
+                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden"><img src="https://i.ibb.co/TBcL8Qkf/0555.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700"></div>
+                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden"><img src="https://i.ibb.co/TqDXcnfF/0666.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700"></div>
+                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden"><img src="https://i.ibb.co/qMV8K5gp/0777.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700"></div>
+                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden"><img src="https://i.ibb.co/Z1hKwTSP/0888.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700"></div>
+                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden"><img src="https://i.ibb.co/TBcL8Qkf/0555.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700"></div>
+                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden"><img src="https://i.ibb.co/TqDXcnfF/0666.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700"></div>
+                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden"><img src="https://i.ibb.co/qMV8K5gp/0777.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700"></div>
+                        <div class="h-44 md:h-72 lg:h-[35vh] flex-shrink-0 mr-1 md:mr-2 overflow-hidden"><img src="https://i.ibb.co/Z1hKwTSP/0888.jpg" class="h-full w-auto block hover:scale-105 transition-transform duration-700"></div>
                     </div>
                 </div>
             </div>
@@ -328,9 +338,9 @@
                         <a href="mailto:254545105@qq.com" class="inline-block text-[14px] md:text-[16px] font-sans font-normal text-[#1A1A1A] hover:text-brand-red transition-colors tracking-tight">254545105@qq.com</a>
                     </div>
                     <div class="gs-contact-reveal gs-init-hide flex flex-col items-center justify-center">
-                        <span class="block text-[9px] font-bold tracking-[0.1em] text-[#A0A090] uppercase mb-2 font-sans">WeChat / 微信扫码</span>
+                        <span class="block text-[9px] font-bold tracking-[0.1em] text-[#A0A090] uppercase mb-2 font-sans">WeChat / 微信公众号</span>
                         <div class="w-20 h-20 md:w-24 md:h-24 border border-[#E2E2D8] bg-[#FDFDFB] p-1 shadow-sm">
-                            <img src="https://i.ibb.co/gM633VHF/ed7933fd9b6e9835a510d5770c602c7.jpg" class="w-full h-full object-contain" alt="天地润禾微信二维码" loading="lazy">
+                            <img src="https://i.ibb.co/gM633VHF/ed7933fd9b6e9835a510d5770c602c7.jpg" class="w-full h-full object-contain" alt="WeChat QR Code">
                         </div>
                     </div>
                 </div>
@@ -341,10 +351,10 @@
         <section id="view-detail" class="absolute inset-0 w-full h-full flex flex-col lg:flex-row z-[8000] opacity-0 pointer-events-none bg-black overflow-y-auto lg:overflow-hidden no-scrollbar text-white">
             <div class="w-full lg:w-1/2 h-[50vh] lg:h-full relative flex items-center justify-center pt-8 lg:pt-0 shrink-0 bg-[#050505]">
                 <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent pointer-events-none z-10 lg:hidden"></div>
-                <img id="detail-img" src="" alt="包装详情" class="gs-detail-reveal opacity-0 h-full w-auto max-w-[85%] object-contain relative z-0 drop-shadow-2xl" />
+                <img id="detail-img" src="" class="gs-detail-reveal opacity-0 h-full w-auto max-w-[85%] object-contain relative z-0 drop-shadow-2xl" />
             </div>
-            <div class="w-full lg:w-1/2 h-auto lg:h-full overflow-y-visible lg:overflow-y-auto custom-scrollbar flex flex-col items-center lg:items-start justify-center lg:pl-16 xl:pl-24 pr-8 lg:pr-32 pb-24 lg:pt-0 border-l border-white/10 bg-black">
-                <div class="w-full max-w-lg flex flex-col mt-8 lg:mt-0">
+            <div class="w-full lg:w-1/2 h-auto lg:h-full overflow-y-visible lg:overflow-y-auto custom-scrollbar flex flex-col items-center lg:items-start lg:pl-16 xl:pl-24 pr-8 lg:pr-32 pb-24 lg:pt-16 border-l border-white/10 bg-black">
+                <div class="w-full max-w-lg flex flex-col">
                     <button onclick="closeDetail()" class="gs-detail-reveal opacity-0 group flex items-center gap-2 text-[10px] font-bold text-gray-500 hover:text-white tracking-[0.2em] uppercase transition-colors mb-12 self-start focus:outline-none">
                         <svg class="w-3 h-3 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                         Back to Works
@@ -356,17 +366,8 @@
                     </div>
                     <div class="w-full h-px bg-white/10 mb-8 gs-detail-reveal opacity-0"></div>
                     <div class="flex flex-col text-center lg:text-left">
-                        <span class="text-[9px] text-gray-500 tracking-[0.2em] uppercase font-semibold mb-5 gs-detail-reveal opacity-0">Design Strategy</span>
+                        <span class="text-[9px] text-gray-500 tracking-[0.2em] uppercase font-semibold mb-5 gs-detail-reveal opacity-0">Background</span>
                         <div id="detail-desc" class="space-y-6 text-sm leading-[2.2] text-gray-400 font-sans font-light text-justify md:text-left gs-detail-reveal opacity-0"></div>
-                    </div>
-                    
-                    <div class="flex items-center justify-between w-full mt-16 pt-8 border-t border-white/10 gs-detail-reveal opacity-0">
-                        <button onclick="navigateDetail(-1)" class="group flex items-center gap-2 text-xs uppercase tracking-[0.15em] text-gray-500 hover:text-white transition-colors focus:outline-none">
-                            <span class="transform group-hover:-translate-x-1 transition-transform">←</span> Prev
-                        </button>
-                        <button onclick="navigateDetail(1)" class="group flex items-center gap-2 text-xs uppercase tracking-[0.15em] text-gray-500 hover:text-white transition-colors focus:outline-none">
-                            Next <span class="transform group-hover:translate-x-1 transition-transform">→</span>
-                        </button>
                     </div>
                 </div>
             </div>
@@ -376,24 +377,22 @@
 
     <script>
         const caseImages = [
-            { id: "01", src: "https://i.ibb.co/vCYqQ1kz/01.png", en: "01 / Edition", zh: "高端包装视觉", desc: "<p><strong class='font-medium text-gray-200'>【视觉构建】</strong><br/>以极致的设计语言诠释品牌内核，通过创新的材质搭配与视觉呈现，打造在高端白酒市场中独具辨识度的超级符号。</p>" },
-            { id: "02", src: "https://i.ibb.co/VsvdTMD/02.png", en: "02 / Classic", zh: "经典品牌形象", desc: "<p><strong class='font-medium text-gray-200'>【文化转译】</strong><br/>将中国传统生肖元素与现代极简美学相融合，为一线酒水品牌构筑具有东方气韵的经典视觉表达，抢占消费者心智。</p>" },
-            { id: "03", src: "https://i.ibb.co/TD4hKGPD/03.png", en: "03 / Premium", zh: "定制珍藏版设计", desc: "<p><strong class='font-medium text-gray-200'>【工艺打磨】</strong><br/>专为高端白酒量身定制的珍藏版包装。运用烫金与凹凸工艺刻画品牌细节，彰显浑厚大气的东方气度与时间沉淀的价值感。</p>" },
-            { id: "04", src: "https://i.ibb.co/r2LMxGJk/04.png", en: "04 / Heritage", zh: "天地润禾·传承", desc: "<p><strong class='font-medium text-gray-200'>【材质溯源】</strong><br/>以湖南高庙白陶为灵感，复刻史前陶器的泥质肌理与哑光质感。古陶瓮的敦厚轮廓与质朴线条，传递出“土与火的艺术”。</p><p class='mt-6'><strong class='font-medium text-gray-200'>【图腾解码】</strong><br/>抽象纹样源自高庙文化标志性的凤鸟与太阳纹。以极简线条还原史前先民的自然崇拜，暗合神秘酿造工艺与地域根脉。</p>" },
-            { id: "05", src: "https://i.ibb.co/5ybZfnp/05.png", en: "05 / Origin", zh: "原浆系列视觉", desc: "<p><strong class='font-medium text-gray-200'>【本真溯源】</strong><br/>褪去浮华，回归白酒的纯粹。包装设计采用环保原木肌理与棉麻质感，突显原浆原酒的醇厚与不可复制的自然馈赠。</p>" },
-            { id: "06", src: "https://i.ibb.co/zW0V6kbs/06.png", en: "06 / Limited", zh: "限量版设计呈现", desc: "<p><strong class='font-medium text-gray-200'>【稀缺表达】</strong><br/>结合非遗传统工艺与现代3D数字渲染技术，为限量版产品打造出无可比拟的艺术收藏价值与视觉冲击力。</p>" },
-            { id: "07", src: "https://i.ibb.co/LDkwhNxq/07.png", en: "07 / Design", zh: "全案包装设计", desc: "<p><strong class='font-medium text-gray-200'>【系统化思维】</strong><br/>从瓶型开模、外盒结构到防伪标签，提供一站式的全案包装设计服务。确保品牌在终端货架上形成强大的视觉列阵效应。</p>" },
-            { id: "08", src: "https://i.ibb.co/HTkRsVVN/08.png", en: "08 / Visual", zh: "视觉焕新企划", desc: "<p><strong class='font-medium text-gray-200'>【时代新生】</strong><br/>在保留传统名酒品牌核心资产的同时，引入更符合当代审美趋势的几何排版与光影质感，实现老品牌的视觉年轻化迭代。</p>" },
-            { id: "09", src: "https://i.ibb.co/YF0TcFbn/09.png", en: "09 / Concept", zh: "概念包装构思", desc: "<p><strong class='font-medium text-gray-200'>【未来探索】</strong><br/>打破传统白酒的包装定式，尝试融合古玉元素、赛博光影等前沿理念，为品牌探索下一代视觉形态的无限可能。</p>" },
-            { id: "10", src: "https://i.ibb.co/SDhmtWMn/10.png", en: "10 / Identity", zh: "品牌识别系统", desc: "<p><strong class='font-medium text-gray-200'>【心智烙印】</strong><br/>不仅仅是包装，更是品牌IP的延伸。通过极简有力的超级符号，让消费者在繁杂的市场中一眼识别出品牌的纯粹基因。</p>" },
-            { id: "11", src: "https://i.ibb.co/0jdqDBtk/11.png", en: "11 / Craft", zh: "匠心工艺展示", desc: "<p><strong class='font-medium text-gray-200'>【细节微观】</strong><br/>用微距视角的宏大叙事来审视包装材质。从纸张的纹路、金属的倒角到玻璃的折射率，每一处工艺都在讲述“不极致，不成活”。</p>" },
-            { id: "12", src: "https://i.ibb.co/gbD53RqH/12.png", en: "12 / Aesthetic", zh: "东方美学表达", desc: "<p><strong class='font-medium text-gray-200'>【意境留白】</strong><br/>深谙中国画的“计白当黑”。在包装排版中大量使用高级留白，以虚衬实，营造出专属于东方文化的高雅韵味与饮酒雅趣。</p>" },
-            { id: "13", src: "https://i.ibb.co/7dDxvW16/13.png", en: "13 / Future", zh: "未来趋势包装", desc: "<p><strong class='font-medium text-gray-200'>【前沿材料】</strong><br/>探索新型环保与光学材料在包装领域的应用。通过特殊光泽与触感反馈，为消费者提供极具未来感的开箱交互体验。</p>" },
-            { id: "14", src: "https://i.ibb.co/N6BXSCJ5/14.png", en: "14 / Innovation", zh: "创新视觉表达", desc: "<p><strong class='font-medium text-gray-200'>【颠覆重构】</strong><br/>解构传统元素的物理形态，用参数化设计手法进行重组。赋予白酒包装既熟悉又充满科技前卫感的新锐面貌。</p>" },
-            { id: "15", src: "https://i.ibb.co/6R6NPknC/15.png", en: "15 / Experience", zh: "沉浸式包装体验", desc: "<p><strong class='font-medium text-gray-200'>【五感共鸣】</strong><br/>开启包装即是开启一段文化旅程。结合独特的开盒结构与阻尼手感，将单纯的物理容器升华为品牌与消费者的情感交互媒介。</p>" }
+            { id: "01", src: "https://i.ibb.co/vCYqQ1kz/01.png", en: "01 / Edition", zh: "高端包装视觉" },
+            { id: "02", src: "https://i.ibb.co/VsvdTMD/02.png", en: "02 / Classic", zh: "经典品牌形象" },
+            { id: "03", src: "https://i.ibb.co/TD4hKGPD/03.png", en: "03 / Premium", zh: "定制珍藏版设计" },
+            { id: "04", src: "https://i.ibb.co/r2LMxGJk/04.png", en: "04 / Heritage", zh: "天地润禾·传承" },
+            { id: "05", src: "https://i.ibb.co/5ybZfnp/05.png", en: "05 / Origin", zh: "原浆系列视觉" },
+            { id: "06", src: "https://i.ibb.co/zW0V6kbs/06.png", en: "06 / Limited", zh: "限量版设计呈现" },
+            { id: "07", src: "https://i.ibb.co/LDkwhNxq/07.png", en: "07 / Design", zh: "全案包装设计" },
+            { id: "08", src: "https://i.ibb.co/HTkRsVVN/08.png", en: "08 / Visual", zh: "视觉焕新企划" },
+            { id: "09", src: "https://i.ibb.co/YF0TcFbn/09.png", en: "09 / Concept", zh: "概念包装构思" },
+            { id: "10", src: "https://i.ibb.co/SDhmtWMn/10.png", en: "10 / Identity", zh: "品牌识别系统" },
+            { id: "11", src: "https://i.ibb.co/0jdqDBtk/11.png", en: "11 / Craft", zh: "匠心工艺展示" },
+            { id: "12", src: "https://i.ibb.co/gbD53RqH/12.png", en: "12 / Aesthetic", zh: "东方美学表达" },
+            { id: "13", src: "https://i.ibb.co/7dDxvW16/13.png", en: "13 / Future", zh: "未来趋势包装" },
+            { id: "14", src: "https://i.ibb.co/N6BXSCJ5/14.png", en: "14 / Innovation", zh: "创新视觉表达" },
+            { id: "15", src: "https://i.ibb.co/6R6NPknC/15.png", en: "15 / Experience", zh: "沉浸式包装体验" }
         ];
-
-        let currentDetailIndex = 0; 
 
         function shuffleArray(array) {
             let curId = array.length;
@@ -405,33 +404,128 @@
             return array;
         }
 
-        function renderSplashGallery() {
-            const splashWrapper = document.getElementById('splash-bg-gallery');
-            if(splashWrapper) {
-                splashWrapper.className = "gallery-wrapper w-full h-full"; 
-                const cols = 15; 
-                const speeds = ['splash-speed-v2', 'splash-speed-v5', 'splash-speed-v1', 'splash-speed-v4', 'splash-speed-v3', 'splash-speed-v1', 'splash-speed-v5', 'splash-speed-v2', 'splash-speed-v4', 'splash-speed-v3', 'splash-speed-v1', 'splash-speed-v2', 'splash-speed-v5', 'splash-speed-v4', 'splash-speed-v3'];
-                const delays = ['-25s', '-100s', '-50s', '-12s', '-75s', '-45s', '-110s', '-5s', '-85s', '-120s', '-35s', '-10s', '-90s', '-65s', '-20s'];
-                
-                for (let i = 0; i < cols; i++) {
-                    const col = document.createElement('div'); 
-                    col.className = `gallery-col border-r border-white/5 perf-opt`; 
-                    const track = document.createElement('div'); 
-                    track.className = `scroll-track ${speeds[i]}`; 
-                    track.style.animationDelay = delays[i];
-                    
-                    let html = '';
-                    for(let k = 0; k < 4; k++) {
-                        const columnItems = shuffleArray([...caseImages]);
-                        columnItems.forEach(item => {
-                            html += `<div class="masonry-item pointer-events-none" style="background-color: transparent; border: none; padding: 4px;"><img src="${item.src}" alt="天地润禾设计案例 ${item.zh}" loading="lazy" decoding="async" style="border-radius: 4px;" /></div>`;
-                        });
-                    }
-                    track.innerHTML = html.repeat(4); 
-                    col.appendChild(track);
-                    splashWrapper.appendChild(col);
-                }
+        let splashAnimationActive = true;
+        
+        function initPointCloud() {
+            const container = document.getElementById('splash-bg-container');
+            container.innerHTML = '';
+            
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 5000);
+            camera.position.z = 1000;
+
+            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); 
+            container.appendChild(renderer.domElement);
+
+            function createCircleTexture() {
+                const canvas = document.createElement('canvas');
+                canvas.width = 32;
+                canvas.height = 32;
+                const ctx = canvas.getContext('2d');
+                const gradient = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+                gradient.addColorStop(0, 'rgba(255,255,255,1)');
+                gradient.addColorStop(0.4, 'rgba(255,255,255,0.8)');
+                gradient.addColorStop(1, 'rgba(255,255,255,0)');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, 32, 32);
+                return new THREE.CanvasTexture(canvas);
             }
+
+            // 【粒子加倍】将环境粒子数增加到 24000
+            const MAX_PARTICLES = 24000; 
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(MAX_PARTICLES * 3);
+            const sizes = new Float32Array(MAX_PARTICLES);
+            const opacities = new Float32Array(MAX_PARTICLES);
+
+            for (let i = 0; i < MAX_PARTICLES; i++) {
+                // 更广阔的散落范围
+                positions[i * 3] = (Math.random() - 0.5) * 6000;
+                positions[i * 3 + 1] = (Math.random() - 0.5) * 6000;
+                positions[i * 3 + 2] = (Math.random() - 0.5) * 4000;
+
+                sizes[i] = Math.random() * 4.5 + 1.5;
+                opacities[i] = Math.random() * 0.8 + 0.2; 
+            }
+
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('aSize', new THREE.BufferAttribute(sizes, 1));
+            geometry.setAttribute('aOpacity', new THREE.BufferAttribute(opacities, 1)); 
+
+            const material = new THREE.ShaderMaterial({
+                uniforms: {
+                    uTexture: { value: createCircleTexture() },
+                    uTime: { value: 0 }
+                },
+                vertexShader: `
+                    attribute float aSize;
+                    attribute float aOpacity;
+                    uniform float uTime;
+                    varying float vOpacity;
+
+                    void main() {
+                        vOpacity = aOpacity;
+                        vec3 pos = position;
+                        
+                        // 【速度放缓，留存感加强】大幅度降低 uTime 乘数，让漂浮感像深海/宇宙般缓慢
+                        pos.x += sin(uTime * 0.05 + position.y * 0.002) * 150.0;
+                        pos.y += cos(uTime * 0.07 + position.x * 0.002) * 150.0;
+                        pos.z += sin(uTime * 0.04 + position.z * 0.002) * 150.0;
+
+                        vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+                        gl_Position = projectionMatrix * mvPosition;
+
+                        gl_PointSize = aSize * (500.0 / -mvPosition.z);
+                    }
+                `,
+                fragmentShader: `
+                    uniform sampler2D uTexture;
+                    uniform float uTime;
+                    varying float vOpacity;
+                    
+                    void main() {
+                        vec4 texColor = texture2D(uTexture, gl_PointCoord);
+                        
+                        // 【星光闪烁放缓】
+                        float twinkle = sin(uTime * 0.8 + vOpacity * 20.0) * 0.3;
+                        float finalAlpha = texColor.a * max(0.1, vOpacity + twinkle) * 1.5;
+                        
+                        gl_FragColor = vec4(1.0, 1.0, 1.0, finalAlpha);
+                    }
+                `,
+                transparent: true,
+                depthWrite: false,
+                blending: THREE.AdditiveBlending
+            });
+
+            const particles = new THREE.Points(geometry, material);
+            scene.add(particles);
+
+            const clock = new THREE.Clock();
+            
+            function animate() {
+                if (!splashAnimationActive) return; 
+                requestAnimationFrame(animate);
+                
+                const time = clock.getElapsedTime();
+                material.uniforms.uTime.value = time; 
+                
+                // 更慢的全局镜头游走
+                particles.rotation.y = time * 0.01;
+                particles.rotation.x = time * 0.005;
+                
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            window.addEventListener('resize', () => {
+                if (!splashAnimationActive) return;
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
         }
 
         function renderWorksGallery(cols) {
@@ -446,7 +540,7 @@
 
             for (let i = 0; i < cols; i++) {
                 const col = document.createElement('div');
-                col.className = `gallery-col border-r border-white/5 perf-opt`;
+                col.className = `gallery-col border-r border-white/5`;
                 const track = document.createElement('div');
                 track.className = `scroll-track ${speeds[i % 5]}`;
                 track.style.animationDelay = delays[i % 5];
@@ -454,7 +548,7 @@
                 const chunk = shuffledWorks.slice(i * itemsPerCol, (i + 1) * itemsPerCol);
                 let html = '';
                 chunk.forEach(item => {
-                    html += `<div onclick="openDetail('${item.id}')" class="cursor-pointer masonry-item"><img src="${item.src}" alt="天地润禾 ${item.zh}" loading="lazy" decoding="async" /><div class="overlay"><div class="overlay-content"><p class="text-brand-red text-xs font-bold tracking-widest uppercase mb-1">${item.en}</p><span class="text-white font-serif font-bold text-xl">${item.zh}</span></div></div></div>`;
+                    html += `<div onclick="openDetail('${item.id}')" class="cursor-pointer masonry-item"><img src="${item.src}" decoding="async" /><div class="overlay"><div class="overlay-content"><p class="text-brand-red text-xs font-bold tracking-widest uppercase mb-1">${item.en}</p><span class="text-white font-serif font-bold text-xl">${item.zh}</span></div></div></div>`;
                 });
                 track.innerHTML = html + html; 
                 col.appendChild(track);
@@ -462,40 +556,28 @@
             }
         }
 
-        function initResponsiveGalleries() { renderWorksGallery(5); }
+        function initResponsiveGalleries() {
+            renderWorksGallery(5);
+        }
 
         function openDetail(id) {
-            currentDetailIndex = caseImages.findIndex(i => i.id === id);
-            if (currentDetailIndex === -1) currentDetailIndex = 0;
-            renderDetailContent(caseImages[currentDetailIndex]);
+            const item = caseImages.find(i => i.id === id) || caseImages[0];
+            document.getElementById('detail-img').src = item.src;
+            document.getElementById('detail-title-zh').textContent = item.zh;
+            document.getElementById('detail-title-en').textContent = item.en;
+
+            if (id === "04" || id === "01") {
+                document.getElementById('detail-desc').innerHTML = `
+                    <p><strong class="font-medium text-gray-200">【材质溯源】</strong><br/>以湖南高庙白陶为灵感，复刻史前陶器的泥质肌理与哑光质感。古陶瓮的敦厚轮廓与质朴线条，传递出“土与火的艺术，时间与酒的沉淀”。</p>
+                    <p class="mt-6"><strong class="font-medium text-gray-200">【图腾解码】</strong><br/>中部抽象纹样源自高庙文化标志性的凤鸟与太阳纹。以极简线条还原史前先民的自然崇拜，暗合馥郁香型的神秘酿造工艺与湖南地域根脉。</p>`;
+            } else {
+                document.getElementById('detail-desc').innerHTML = `<p><strong class="font-medium text-gray-200">【视觉构建】</strong><br/>以极致的设计语言诠释品牌内核。我们深入挖掘产品基因，通过创新的材质搭配与视觉呈现，打造在市场中独具辨识度的超级符号。</p>`;
+            }
 
             const detailView = document.getElementById('view-detail');
             gsap.set(".gs-detail-reveal", { opacity: 0, y: 15 });
             gsap.to(detailView, { opacity: 1, duration: 0.45, ease: "power2.out", pointerEvents: "auto", zIndex: 8000 });
             gsap.to(".gs-detail-reveal", { opacity: 1, y: 0, duration: 0.7, stagger: 0.08, ease: "power3.out", delay: 0.1 });
-        }
-        
-        function renderDetailContent(item) {
-            const imgEl = document.getElementById('detail-img');
-            imgEl.src = item.src;
-            imgEl.alt = `${item.zh} 包装设计`;
-            document.getElementById('detail-title-zh').textContent = item.zh;
-            document.getElementById('detail-title-en').textContent = item.en;
-            document.getElementById('detail-desc').innerHTML = item.desc;
-        }
-
-        function navigateDetail(direction) {
-            let nextIndex = currentDetailIndex + direction;
-            if (nextIndex < 0) nextIndex = caseImages.length - 1;
-            if (nextIndex >= caseImages.length) nextIndex = 0;
-            
-            currentDetailIndex = nextIndex;
-            const newItem = caseImages[currentDetailIndex];
-            
-            gsap.to(".gs-detail-reveal, #detail-img", { opacity: 0, y: 5, duration: 0.2, ease: "power1.in", onComplete: () => {
-                renderDetailContent(newItem);
-                gsap.to(".gs-detail-reveal, #detail-img", { opacity: 1, y: 0, duration: 0.4, stagger: 0.05, ease: "power2.out" });
-            }});
         }
 
         function closeDetail() {
@@ -503,29 +585,18 @@
             gsap.to(detailView, { opacity: 0, duration: 0.35, ease: "power2.in", pointerEvents: "none", zIndex: 0 });
         }
 
-        let mobileMenuOpen = false;
+        let isMobileMenuOpen = false;
         function toggleMobileMenu() {
-            mobileMenuOpen = !mobileMenuOpen;
             const menu = document.getElementById('mobile-menu');
-            const iconPath = document.getElementById('hamburger-icon');
-            const svgIcon = document.getElementById('hamburger-svg');
+            isMobileMenuOpen = !isMobileMenuOpen;
             
-            if (mobileMenuOpen) {
-                menu.classList.remove('pointer-events-none', 'opacity-0');
-                menu.classList.add('opacity-100', 'pointer-events-auto');
-                svgIcon.classList.add('rotate-90'); 
-                iconPath.setAttribute('d', 'M6 18L18 6M6 6l12 12'); 
+            if (isMobileMenuOpen) {
+                menu.classList.remove('pointer-events-none');
+                menu.style.opacity = '1';
             } else {
-                menu.classList.add('pointer-events-none', 'opacity-0');
-                menu.classList.remove('opacity-100', 'pointer-events-auto');
-                svgIcon.classList.remove('rotate-90');
-                iconPath.setAttribute('d', 'M4 6h16M4 12h16M4 18h16'); 
+                menu.classList.add('pointer-events-none');
+                menu.style.opacity = '0';
             }
-        }
-        
-        function switchMobileView(target) {
-            toggleMobileMenu();
-            setTimeout(() => { switchView(target); }, 200); 
         }
 
         let hasEnteredSite = false;
@@ -536,22 +607,26 @@
             const tl = gsap.timeline();
             gsap.to(".splash-hint", { opacity: 0, duration: 0.3 });
             
-            tl.to("#splash-bg-container", { scale: 1.15, opacity: 0, duration: 1.2, ease: "power2.inOut" }, 0);
-            tl.to(".splash-text", { scale: 1.05, opacity: 0, duration: 1.0, ease: "power2.inOut" }, 0);
+            // 加入一个优雅的缩放淡出
+            gsap.to(".splash-text", { scale: 1.1, opacity: 0, duration: 0.8, ease: "power2.in" });
             
             tl.to("#splash-screen", { 
-                opacity: 0, duration: 0.8, ease: "power1.inOut", 
-                onComplete: () => { document.getElementById('splash-screen').style.display = 'none'; } 
-            }, 0.4);
+                opacity: 0, duration: 1.2, ease: "power2.inOut", delay: 0.2,
+                onComplete: () => { 
+                    document.getElementById('splash-screen').style.display = 'none'; 
+                    splashAnimationActive = false; // 关闭开屏动画以释放内存性能
+                } 
+            });
             
+            // 延时接驳，默认跳转到 Company，并触发全局导航浮现
             setTimeout(() => {
                 switchView('company');
                 gsap.fromTo("header", { y: -10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "power2.out" });
-            }, 700);
+            }, 600);
         }
 
         document.addEventListener("DOMContentLoaded", () => {
-            renderSplashGallery();
+            initPointCloud(); 
             initResponsiveGalleries();
             
             gsap.fromTo(".splash-text", { opacity: 0, scale: 0.98, y: 10 }, { opacity: 1, scale: 1, y: 0, duration: 1.6, ease: "power2.out", delay: 0.3 });
@@ -581,7 +656,7 @@
 
             const views = {
                 'company': { nav: 'nav-company', el: 'view-company', reveal: '.gs-company-reveal' },
-                'works': { nav: 'nav-works', el: 'view-works', reveal: '.gs-works-fade' },
+                'works': { nav: 'nav-works', el: 'view-works', reveal: '.gs-works-fade' }, 
                 'people': { nav: 'nav-people', el: 'view-people', reveal: '.gs-people-reveal' },
                 'contact': { nav: 'nav-contact', el: 'view-contact', reveal: '.gs-contact-reveal' }
             };
@@ -589,14 +664,10 @@
             Object.keys(views).forEach(key => {
                 const config = views[key];
                 const nav = document.getElementById(config.nav), el = document.getElementById(config.el);
-                const mobNav = document.getElementById('mob-nav-' + key);
-                
                 if (!nav || !el) return;
                 
                 if (key === target) {
                     nav.classList.add('nav-active');
-                    if(mobNav) { mobNav.classList.add('text-brand-red'); mobNav.classList.remove('text-[#1A1A1A]'); }
-                    
                     gsap.to(el, { opacity: 1, duration: 0.45, ease: "power2.out", pointerEvents: "auto", zIndex: 10 });
                     
                     if (key === 'works') {
@@ -606,8 +677,6 @@
                     }
                 } else {
                     nav.classList.remove('nav-active');
-                    if(mobNav) { mobNav.classList.remove('text-brand-red'); mobNav.classList.add('text-[#1A1A1A]'); }
-                    
                     gsap.to(el, { opacity: 0, duration: 0.35, ease: "power2.in", pointerEvents: "none", zIndex: 0 });
                 }
             });
