@@ -17,7 +17,11 @@
         #splash-screen { position: fixed; inset: 0; background-color: #000000; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; }
         #splash-bg-container { position: absolute; inset: 0; width: 100vw; height: 100vh; z-index: 1; pointer-events: none; opacity: 1; filter: none; transform: none; }
         .splash-text { color: #FFFFFF; font-size: clamp(2rem, 6vw, 5.5rem); font-weight: 900; letter-spacing: 0.15em; font-family: 'Noto Sans SC', sans-serif; position: relative; z-index: 10; text-align: center; text-shadow: 0 0 40px rgba(0,0,0,0.8); transition: letter-spacing 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.1s; }
-        @media (max-width: 768px) { .splash-text { writing-mode: vertical-rl; text-orientation: upright; letter-spacing: 0.35em; font-size: 2.2rem; height: 60vh; } }
+        
+        @media (max-width: 768px) { 
+            .splash-text { writing-mode: vertical-rl; text-orientation: upright; letter-spacing: 0.35em; font-size: 2.2rem; height: 60vh; white-space: nowrap; } 
+        }
+        
         .splash-hint { position: absolute; bottom: 10%; left: 50%; transform: translateX(-50%); color: rgba(255, 255, 255, 0.4); font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; font-family: 'Inter', sans-serif; animation: pulseHint 2s infinite ease-in-out; z-index: 10; }
         @keyframes pulseHint { 0%, 100% { opacity: 0.2; } 50% { opacity: 0.8; } }
 
@@ -63,8 +67,24 @@
         .nav-active .nav-zh { color: var(--brand-red); }
         .nav-active::after { content: ''; position: absolute; bottom: 0; left: 15%; width: 70%; height: 1.5px; background-color: var(--brand-red); transform-origin: center; }
         
-        .mobile-nav-btn { font-family: 'Noto Sans SC', sans-serif; font-weight: 500; letter-spacing: 0.15em; font-size: 1.1rem; color: #333; transition: color 0.3s ease; }
-        .mobile-nav-btn:hover { color: var(--brand-red); }
+        /* 全新设计的移动端高级菜单按钮 */
+        .mobile-nav-btn-new {
+            font-family: 'Noto Sans SC', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            text-align: left;
+            width: 100%;
+            padding: 1.5rem 0;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            transition: transform 0.3s ease;
+            background: transparent;
+            color: #1A1A1A;
+        }
+        .mobile-nav-btn-new:last-child { border-bottom: none; }
+        .mobile-nav-btn-new:hover { transform: translateX(10px); }
+        .mobile-nav-btn-new .en { font-size: 0.65rem; letter-spacing: 0.25em; color: #9CA3AF; text-transform: uppercase; margin-bottom: 0.25rem; font-family: 'Inter', sans-serif;}
+        .mobile-nav-btn-new .zh { font-size: 1.5rem; font-weight: 700; letter-spacing: 0.15em; color: #1A1A1A; }
 
         /* --- Banner 轮播样式 --- */
         .company-banner-container { width: 100%; height: auto; aspect-ratio: 16 / 9; max-height: 80vh; position: relative; overflow: hidden; background-color: #050505; }
@@ -92,6 +112,11 @@
             #view-works .masonry-item { background-color: transparent; border-bottom: none; }
             #view-works .gallery-col { border-right: none !important; }
             .overlay { display: none !important; } 
+            
+            /* 细化并收窄移动端的轮播指示条 */
+            .banner-dot { width: 12px !important; height: 2px !important; }
+            .banner-dot.active { width: 20px !important; }
+
             .article-bg-number { font-size: 50vh; right: -10%; top: 20%; opacity: 0.05; }
             .article-lead { font-size: 1.1rem; }
             .article-para { font-size: 0.95rem; }
@@ -104,10 +129,9 @@
     <div id="splash-screen" onclick="enterSite()">
         <div id="splash-bg-container"></div>
         <div class="splash-text gs-splash-text">
-            <span>天地润禾</span>
-            <span class="hidden md:inline">&nbsp;&nbsp;</span>
-            <span class="inline-block md:hidden h-4 w-0"></span>
-            <span>成人之美</span>
+            <span class="hidden md:inline">天地润禾&nbsp;&nbsp;成人之美</span>
+            <!-- 采用透明占位符方案，强迫文字成为一个整体不被拆列，根治移动端排版错乱 Bug -->
+            <span class="inline-block md:hidden">天地润禾<span style="color:transparent; user-select:none;">一</span>成人之美</span>
         </div>
         <div class="splash-hint gs-splash-text">Click To Enter</div>
     </div>
@@ -140,15 +164,17 @@
         </div>
     </header>
 
-    <!-- 移动端菜单覆盖层 -->
-    <div id="mobile-menu" class="fixed inset-0 z-[60] bg-[var(--bg-paper)] flex flex-col items-center justify-center gap-12 opacity-0 pointer-events-none transition-opacity duration-300">
-        <button onclick="toggleMobileMenu()" class="absolute top-4 right-6 p-2 text-[#1A1A1A] focus:outline-none">
+    <!-- 重新设计的移动端高级菜单覆盖层 -->
+    <div id="mobile-menu" class="fixed inset-0 z-[60] bg-[var(--bg-paper)] flex flex-col items-start justify-center px-12 opacity-0 pointer-events-none transition-opacity duration-300">
+        <button onclick="toggleMobileMenu()" class="absolute top-6 right-8 p-2 text-[#1A1A1A] focus:outline-none">
             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
-        <button onclick="switchView('company'); toggleMobileMenu();" class="mobile-nav-btn">关于我们 / Company</button>
-        <button onclick="switchView('works'); toggleMobileMenu();" class="mobile-nav-btn">项目作品 / Works</button>
-        <button onclick="switchView('people'); toggleMobileMenu();" class="mobile-nav-btn">核心团队 / People</button>
-        <button onclick="switchView('contact'); toggleMobileMenu();" class="mobile-nav-btn">联系方式 / Contact</button>
+        <div class="w-full max-w-xs mx-auto">
+            <button onclick="switchView('company'); toggleMobileMenu();" class="mobile-nav-btn-new focus:outline-none"><span class="en">Company</span><span class="zh">关于我们</span></button>
+            <button onclick="switchView('works'); toggleMobileMenu();" class="mobile-nav-btn-new focus:outline-none"><span class="en">Works</span><span class="zh">项目作品</span></button>
+            <button onclick="switchView('people'); toggleMobileMenu();" class="mobile-nav-btn-new focus:outline-none"><span class="en">People</span><span class="zh">核心团队</span></button>
+            <button onclick="switchView('contact'); toggleMobileMenu();" class="mobile-nav-btn-new focus:outline-none"><span class="en">Contact</span><span class="zh">联系方式</span></button>
+        </div>
     </div>
 
     <main class="relative flex-grow w-full overflow-hidden">
@@ -160,29 +186,25 @@
             </div>
         </section>
 
-        <!-- ==================== 视图 2: 公司简介 (COMPANY) 上下结构重构 ==================== -->
+        <!-- ==================== 视图 2: 公司简介 (COMPANY) ==================== -->
         <section id="view-company" class="absolute inset-0 w-full h-full z-[20] opacity-0 pointer-events-none bg-[var(--bg-paper)] overflow-y-auto custom-scrollbar flex flex-col">
             
-            <!-- 顶部全宽 Banner 轮播区域 -->
             <div class="company-banner-container flex-shrink-0 gs-company-reveal gs-init-hide">
                 <div class="banner-slides w-full h-full relative">
-                    <!-- 新的 7 张图 -->
-                    <div class="banner-slide active" onclick="switchView('article')"><img src="https://i.ibb.co/rKV49cDd/1.jpg" alt="1"></div>
-                    <div class="banner-slide" onclick="switchView('article')"><img src="https://i.ibb.co/JRMcYBKP/2.jpg" alt="2"></div>
-                    <div class="banner-slide" onclick="switchView('article')"><img src="https://i.ibb.co/9kVY73qH/3.jpg" alt="3"></div>
-                    <div class="banner-slide" onclick="switchView('article')"><img src="https://i.ibb.co/1Jq14RGP/4.jpg" alt="4"></div>
-                    <div class="banner-slide" onclick="switchView('article')"><img src="https://i.ibb.co/8LRXzF7b/5.jpg" alt="5"></div>
-                    <div class="banner-slide" onclick="switchView('article')"><img src="https://i.ibb.co/HTp9dsjG/6.jpg" alt="6"></div>
-                    <div class="banner-slide" onclick="switchView('article')"><img src="https://i.ibb.co/p6c6zDfD/7.jpg" alt="7"></div>
+                    <div class="banner-slide active"><img src="https://i.ibb.co/rKV49cDd/1.jpg" alt="1"></div>
+                    <div class="banner-slide"><img src="https://i.ibb.co/JRMcYBKP/2.jpg" alt="2"></div>
+                    <div class="banner-slide"><img src="https://i.ibb.co/9kVY73qH/3.jpg" alt="3"></div>
+                    <div class="banner-slide"><img src="https://i.ibb.co/1Jq14RGP/4.jpg" alt="4"></div>
+                    <div class="banner-slide"><img src="https://i.ibb.co/8LRXzF7b/5.jpg" alt="5"></div>
+                    <div class="banner-slide"><img src="https://i.ibb.co/HTp9dsjG/6.jpg" alt="6"></div>
+                    <div class="banner-slide"><img src="https://i.ibb.co/p6c6zDfD/7.jpg" alt="7"></div>
                 </div>
-                <!-- 左右导航箭头 -->
                 <div class="banner-nav-btn prev" onclick="moveSlide(-1)">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
                 </div>
                 <div class="banner-nav-btn next" onclick="moveSlide(1)">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
                 </div>
-                <!-- 底部指示器 7 个 -->
                 <div class="banner-dots">
                     <div class="banner-dot active" onclick="setSlide(0)"></div>
                     <div class="banner-dot" onclick="setSlide(1)"></div>
@@ -235,58 +257,6 @@
             </div>
         </section>
 
-        <!-- ==================== 视图: 杂志长文特辑 (ARTICLE) ==================== -->
-        <section id="view-article" class="absolute inset-0 w-full h-full z-[30] opacity-0 pointer-events-none bg-[var(--bg-paper)] overflow-y-auto custom-scrollbar">
-            <!-- 沉浸式数字 16 浮水印 -->
-            <div class="article-bg-number">16</div>
-            
-            <div class="relative w-full max-w-3xl mx-auto px-8 py-20 lg:py-32">
-                <button onclick="switchView('company')" class="gs-article-reveal group flex items-center gap-2 text-xs font-bold text-gray-500 hover:text-brand-red tracking-[0.2em] uppercase transition-colors mb-12 focus:outline-none relative z-20">
-                    <svg class="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                    Back
-                </button>
-                
-                <div class="mb-16 gs-article-reveal">
-                    <span class="block text-[10px] font-bold tracking-[0.2em] text-brand-red uppercase mb-4 font-sans">16th Anniversary Special</span>
-                    <h1 class="text-3xl md:text-5xl font-black text-[#1A1A1A] tracking-tighter leading-[1.3] mb-6 font-serif">焕新启新境｜天地润禾设计乔迁雅聚，把酒叙新篇！</h1>
-                    <div class="w-12 h-1 bg-brand-red"></div>
-                </div>
-
-                <div class="article-content gs-article-reveal">
-                    <div class="article-lead">
-                        良辰迁新址，欢聚贺新章。天地润禾设计乔迁答谢宴圆满落幕。我们用松弛自在的小聚会，答谢一路相伴的行业挚友。
-                    </div>
-                    <p class="article-para">
-                        活动上午，众来宾陆续到访全新办公场地，自由参观。大家围坐茶室，煮茶闲谈，聊行业趋势、谈产品创意、叙多年合作缘分，褪去商务客套，在清茶漫谈里拉近彼此距离。崭新的办公环境，也让来访伙伴直观感受公司全新的风貌。
-                    </p>
-                    <p class="article-para">
-                        正午时分，众人移步《菇菇宴・梧桐川菜》，享传承九十余年的川渝本味。一桌川渝佳肴搭配佳酿，席间举杯畅谈，细数行业点滴趣事。
-                    </p>
-                    <p class="article-para text-center my-12 text-xl font-serif tracking-widest article-highlight">
-                        “ 敬往昔、今朝与未来！ ”
-                    </p>
-                    <p class="article-para">
-                        十六载风雨兼程，天地润禾设计由衷致谢一路相伴的所有人。感谢广大客户，一次次托付合作，赠予我们成长的宝贵机遇；感谢携手共进的合作伙伴，多年的以诚相交、风雨共渡；感谢各方设计同仁，亦师亦友、彼此勉励；亦感谢相守多年的员工伙伴，日复一日勤恳坚守。
-                    </p>
-                    <p class="article-para">
-                        正是全员的同心相伴，方才铺就天地润禾过往的成长之路。本次乔迁所获最大之喜，莫过于各位来宾于百忙中拨冗赴宴，这便是对我们最好的祝福与厚爱。
-                    </p>
-                    <p class="article-para">
-                        一直以来，天地润禾设计持续深耕白酒设计领域，先后与茅台、五粮液、洋河等知名酒企深度合作。我们始终以专注扎根行业、深挖品牌文化基因；以深度依托视觉锤、人体工程学打造适配市场的原创包装；以国际视野融合东方美学，用全球化语言讲述中国白酒文化；把文化价值转化为实实在在的商业价值。
-                    </p>
-                    <div class="my-12 p-8 bg-white border border-[#E2E2D8] text-center shadow-sm">
-                        <p class="font-serif text-lg tracking-widest text-[#1A1A1A]">用设计点亮酒的魅力，让品牌深入人心！</p>
-                    </div>
-                    <p class="article-para">
-                        如今，新办公场地既是我们发展的全新起点，也将是链接行业资源、碰撞设计灵感的全新平台。未来，天地润禾设计将继续秉持匠心，坚守原创设计本心，携手合作伙伴共赢酒业新机遇。
-                    </p>
-                    <p class="article-para font-medium text-right text-gray-400 italic">
-                        —— 焕址迎新、以诚聚友、匠心致远
-                    </p>
-                </div>
-            </div>
-        </section>
-
         <!-- ==================== 视图 4: 团队成员 (PEOPLE) ==================== -->
         <section id="view-people" class="absolute inset-0 w-full h-full z-0 opacity-0 pointer-events-none bg-[var(--bg-paper)] overflow-y-auto custom-scrollbar">
             <div class="w-full max-w-[1440px] mx-auto px-6 py-10 lg:px-12 md:py-16 lg:py-24 flex flex-col lg:flex-row gap-8 lg:gap-20 items-start">
@@ -309,9 +279,9 @@
             </div>
         </section>
 
-        <!-- ==================== 视图 3: 联系我们 (CONTACT) 优化放大 ==================== -->
+        <!-- ==================== 视图 3: 联系我们 (CONTACT) ==================== -->
         <section id="view-contact" class="absolute inset-0 w-full h-full flex flex-col z-0 opacity-0 pointer-events-none bg-[var(--bg-paper)] overflow-y-auto lg:overflow-hidden custom-scrollbar">
-            <!-- 放大上方画廊展示区 -->
+            <!-- 上方画廊展示区 -->
             <div class="w-full h-[50vh] md:h-[65vh] lg:h-[70%] shrink-0 relative overflow-hidden border-b bg-[var(--bg-paper)]" style="border-color: var(--border-color);">
                 <div class="w-full relative overflow-hidden gs-contact-reveal gs-init-hide flex flex-col justify-center h-full gap-1 md:gap-2">
                     <div class="scroll-track-x scroll-left speed-x-mid">
@@ -337,7 +307,6 @@
                 </div>
             </div>
             
-            <!-- 对齐底部信息 -->
             <div class="w-full flex-grow flex items-center justify-center p-6 lg:p-8 bg-[var(--bg-paper)]">
                 <div class="w-full max-w-[1440px] flex flex-col md:flex-row items-center md:items-start justify-center md:justify-around gap-8 text-center">
                     <div class="gs-contact-reveal gs-init-hide flex flex-col items-center">
@@ -370,7 +339,6 @@
                 <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent pointer-events-none z-10 lg:hidden"></div>
                 <img id="detail-img" src="" class="gs-detail-reveal opacity-0 h-full w-auto max-w-[85%] object-contain relative z-0 drop-shadow-2xl" />
             </div>
-            <!-- 优化移动端内边距，提升阅读透气感 -->
             <div class="w-full lg:w-1/2 h-auto lg:h-full overflow-y-visible lg:overflow-y-auto custom-scrollbar flex flex-col items-center lg:items-start px-6 py-10 lg:pl-16 xl:pl-24 lg:pr-32 lg:py-16 border-l border-white/10 bg-black">
                 <div class="w-full max-w-lg flex flex-col">
                     <button onclick="closeDetail()" class="gs-detail-reveal opacity-0 group flex items-center gap-2 text-[10px] font-bold text-gray-500 hover:text-white tracking-[0.2em] uppercase transition-colors mb-8 lg:mb-12 self-start focus:outline-none">
@@ -567,7 +535,7 @@
         function startSlideShow() {
             slideInterval = setInterval(() => {
                 moveSlide(1);
-            }, 5000); // 每5秒自动切换
+            }, 5000); 
         }
 
         function resetSlideShow() {
@@ -575,11 +543,10 @@
             startSlideShow();
         }
 
-        // --- 根据屏幕宽度动态计算瀑布流列数 ---
         function getGalleryCols() {
-            if (window.innerWidth < 640) return 2; // 移动端 2列
-            if (window.innerWidth < 1024) return 3; // 平板 3列
-            return 5; // 电脑端 5列
+            if (window.innerWidth < 640) return 2; 
+            if (window.innerWidth < 1024) return 3; 
+            return 5; 
         }
 
         function renderWorksGallery(cols) {
@@ -589,7 +556,6 @@
             
             const shuffledWorks = shuffleArray([...caseImages]);
             const itemsPerCol = Math.ceil(shuffledWorks.length / cols);
-            // 为不同列数匹配速度和延迟
             const speeds = ['speed-v2', 'speed-v5', 'speed-v1', 'speed-v4', 'speed-v3'];
             const delays = ['-10s', '-40s', '-20s', '-5s', '-30s'];
 
@@ -605,39 +571,28 @@
                 chunk.forEach(item => {
                     html += `<div onclick="openDetail('${item.id}')" class="cursor-pointer masonry-item"><img src="${item.src}" decoding="async" /><div class="overlay"><div class="overlay-content"><p class="text-brand-red text-xs font-bold tracking-widest uppercase mb-1">${item.en}</p><span class="text-white font-serif font-bold text-xl">${item.zh}</span></div></div></div>`;
                 });
-                // 重复以确保无缝滚动
                 track.innerHTML = html + html; 
                 col.appendChild(track);
                 wrapper.appendChild(col);
             }
 
-            // --- 移动端触屏拖拽逻辑 ---
-            if (window.innerWidth <= 768 || 'ontouchstart' in window) {
+            if ('ontouchstart' in window) {
                 const tracks = wrapper.querySelectorAll('.scroll-track');
                 let touchStartY = 0;
-
-                // 为了能够随时暂停和干预 CSS 动画，使用 Web Animations API 管理动画状态
-                tracks.forEach(track => {
-                    track.getAnimations().forEach(anim => {
-                        anim.playbackRate = 1.0; 
-                    });
-                });
-
-                // 工具函数：调整所有轨道的动画时间轴
+                
                 const shiftGalleryTime = (deltaY) => {
                     tracks.forEach(track => {
-                        track.getAnimations().forEach(anim => {
+                        const anim = track.getAnimations()[0];
+                        if (anim) {
                             const duration = anim.effect.getComputedTiming().duration;
                             let newTime = anim.currentTime + deltaY;
                             anim.currentTime = newTime < 0 ? duration + (newTime % duration) : newTime % duration;
-                        });
+                        }
                     });
                 };
 
                 wrapper.addEventListener('touchstart', (e) => {
                     touchStartY = e.touches[0].clientY;
-                    // 按下时暂停自动滚动
-                    tracks.forEach(track => track.getAnimations().forEach(anim => anim.pause()));
                 }, { passive: true });
 
                 wrapper.addEventListener('touchmove', (e) => {
@@ -651,11 +606,6 @@
                     
                     touchStartY = touchCurrentY; 
                 }, { passive: false });
-
-                wrapper.addEventListener('touchend', () => {
-                    // 松开手指后恢复自动滚动
-                    tracks.forEach(track => track.getAnimations().forEach(anim => anim.play()));
-                });
             }
         }
 
@@ -710,18 +660,16 @@
             const tl = gsap.timeline();
             gsap.to(".splash-hint", { opacity: 0, duration: 0.3 });
             
-            // 优雅的缩放淡出
             gsap.to(".splash-text", { scale: 1.1, opacity: 0, duration: 0.8, ease: "power2.in" });
             
             tl.to("#splash-screen", { 
                 opacity: 0, duration: 1.2, ease: "power2.inOut", delay: 0.2,
                 onComplete: () => { 
                     document.getElementById('splash-screen').style.display = 'none'; 
-                    splashAnimationActive = false; // 关闭开屏动画以释放内存性能
+                    splashAnimationActive = false; 
                 } 
             });
             
-            // 延时接驳，跳转到 Company
             setTimeout(() => {
                 switchView('company');
                 gsap.fromTo("header", { y: -10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "power2.out" });
@@ -731,17 +679,22 @@
         document.addEventListener("DOMContentLoaded", () => {
             initPointCloud(); 
             initResponsiveGalleries();
-            initBanner(); // 初始化轮播图
+            initBanner();
             
             gsap.fromTo(".splash-text", { opacity: 0, scale: 0.98, y: 10 }, { opacity: 1, scale: 1, y: 0, duration: 1.6, ease: "power2.out", delay: 0.3 });
             
-            // 3.5秒自动切屏逻辑
+            // 修正1：3秒自动切换
             setTimeout(() => {
                 if (!hasEnteredSite) {
                     enterSite();
                 }
-            }, 3500);
+            }, 3000);
 
+            document.querySelector('.splash-text').addEventListener('click', (e) => {
+                e.stopPropagation();
+                enterSite();
+            });
+            
             document.querySelector('.gallery-wrapper')?.addEventListener('wheel', (e) => {
                 const worksView = document.getElementById('view-works');
                 if (worksView?.style.opacity === '0') return;
@@ -756,7 +709,6 @@
                 });
             }, { passive: true });
             
-            // 监听窗口缩放，防抖重置瀑布流列数
             let resizeTimer;
             window.addEventListener('resize', () => {
                 clearTimeout(resizeTimer);
@@ -784,8 +736,7 @@
                 'company': { nav: 'nav-company', el: 'view-company', reveal: '.gs-company-reveal' },
                 'works': { nav: 'nav-works', el: 'view-works', reveal: '.gs-works-fade' }, 
                 'people': { nav: 'nav-people', el: 'view-people', reveal: '.gs-people-reveal' },
-                'contact': { nav: 'nav-contact', el: 'view-contact', reveal: '.gs-contact-reveal' },
-                'article': { nav: null, el: 'view-article', reveal: '.gs-article-reveal' } // 添加特辑页面映射
+                'contact': { nav: 'nav-contact', el: 'view-contact', reveal: '.gs-contact-reveal' }
             };
             
             Object.keys(views).forEach(key => {
@@ -796,7 +747,6 @@
                 
                 if (key === target) {
                     if (nav) nav.classList.add('nav-active');
-                    // 渐入缩放
                     gsap.to(el, { opacity: 1, duration: 0.6, ease: "power2.out", pointerEvents: "auto", zIndex: 10 });
                     
                     if (config.reveal && document.querySelectorAll(config.reveal).length > 0) {
@@ -807,7 +757,6 @@
                     }
                 } else {
                     if (nav) nav.classList.remove('nav-active');
-                    // 渐出缩放
                     gsap.to(el, { opacity: 0, duration: 0.4, ease: "power2.in", pointerEvents: "none", zIndex: 0 });
                     if (config.reveal && document.querySelectorAll(config.reveal).length > 0) {
                         gsap.to(config.reveal, { opacity: 0, scale: 1.02, duration: 0.4, ease: "power2.in" });
